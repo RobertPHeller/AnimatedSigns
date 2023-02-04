@@ -1,4 +1,4 @@
-update=Sat 04 Feb 2023 01:13:41 PM EST
+update=Sat 04 Feb 2023 05:36:31 PM EST
 version=1
 last_client=kicad
 [pcbnew]
@@ -61,5 +61,3 @@ LibName29=opto
 LibName30=atmel
 LibName31=contrib
 LibName32=valves
-LibName33=tbd62x83a
-LibName34=led_3in1

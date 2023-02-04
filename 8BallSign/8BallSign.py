@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 3 15:28:08 2023
-#  Last Modified : <230203.1958>
+#  Last Modified : <230204.1732>
 #
 #  Description	
 #
@@ -93,7 +93,7 @@ class ArrowFace(object):
         self.face=self.face.translate(origin)
 
 class WholeSignPath(object):
-    _wholeSignPoly = [(5.715,5.08,0),(5.715,22.86,0),(10.16,22.86,0),(10.16,76.2,0),\
+    _wholeSignPoly = [(5.715,5.08,0),(5.715,29.21,0),(10.16,29.21,0),(10.16,76.2,0),\
                       (31.75,76.2,0),(31.75,0,0),(10.16,0,0),(10.16,5.08,0),\
                       (5.715,5.08,0)]
     def __init__(self,origin):
@@ -107,10 +107,10 @@ class WholeSignPath(object):
         self.face=Part.Face(Part.Wire(Part.makePolygon(polypoints)))
         
 class SignPCB(object):
-    _pcbPoly = [(0,5.08,0),(0,22.86,0),(10.16,22.86,0),(10.16,76.2,0),\
+    _pcbPoly = [(0,5.08,0),(0,29.21,0),(10.16,29.21,0),(10.16,76.2,0),\
                       (31.75,76.2,0),(31.75,0,0),(10.16,0,0),(10.16,5.08,0),\
                       (0,5.08,0)]
-    def __init__(self,name,origin):
+    def __init__(self,name,origin,extrude=1):
         self.name=name
         if not isinstance(origin,Base.Vector):
             raise RuntimeError("origin is not a Vector!")
@@ -119,7 +119,7 @@ class SignPCB(object):
         for tup in self._pcbPoly:
             x,y,z = tup
             polypoints.append(origin.add(Base.Vector(x,y,z)))
-        self.board=Part.Face(Part.Wire(Part.makePolygon(polypoints))).extrude(Base.Vector(0,0,1.5))
+        self.board=Part.Face(Part.Wire(Part.makePolygon(polypoints))).extrude(Base.Vector(0,0,1.5*extrude))
     def show(self):
         doc = App.activeDocument()
         obj = doc.addObject("Part::Feature",self.name)
@@ -127,126 +127,231 @@ class SignPCB(object):
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
         
-class Sign(object):
+class SignLeft(object):
     def __init__(self,name,origin):
         self.name=name
         if not isinstance(origin,Base.Vector):
             raise RuntimeError("origin is not a Vector!")
         self.origin=origin
-        self.board = SignPCB(name+"_board",origin)
+        self.boardL = SignPCB(name+"_pcbL",origin)
+        self.boardR = SignPCB(name+"_pcbR",origin,-1)
         signcaseface = WholeSignPath(origin.add(Base.Vector(0,0,1.5)))
-        self.case = signcaseface.face.extrude(Base.Vector(0,0,5))
-        arrowface = ArrowFace(origin.add(Base.Vector(0,0,6.5)))
-        self.arrow = arrowface.face.extrude(Base.Vector(0,0,.1))
-        cueface = VCueFace(origin.add(Base.Vector(0,0,6.5)))
-        self.cue = cueface.face.extrude(Base.Vector(0,0,.1))
-        self.table = Part.makePlane(18-6.35,71.12-6.35,origin.add(Base.Vector(10.16+3.175,5.08+3.175,6.5))).extrude(Base.Vector(0,0,.1))
-        self.tableOutline = Part.makePlane(18,71.12,origin.add(Base.Vector(10.16,5.08,6.5))).extrude(Base.Vector(0,0,.1))
-        self.eightball = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,6.5))))).extrude(Base.Vector(0,0,.2))
-        temp = Part.Face(Part.makeWireString("8","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
-        self.eightball8 = temp.translate(origin.add(Base.Vector(19.16-2.5,68-3,6.5))).extrude(Base.Vector(0,0,.3))
-        self.bball = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,6.5))))).extrude(Base.Vector(0,0,.2))
-        temp = Part.Face(Part.makeWireString("B","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
-        self.bballB = temp.translate(origin.add(Base.Vector(19.16-2.5,59-3,6.5))).extrude(Base.Vector(0,0,.3))
-        self.aball = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,50,6.5))))).extrude(Base.Vector(0,0,.2))
-        temp = Part.Face(Part.makeWireString("A","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
-        self.aballA = temp.translate(origin.add(Base.Vector(19.16-2.5,50-3,6.5))).extrude(Base.Vector(0,0,.3))
-        self.l1ball = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,41,6.5))))).extrude(Base.Vector(0,0,.2))
-        temp = Part.Face(Part.makeWireString("L","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
-        self.l1ballL = temp.translate(origin.add(Base.Vector(19.16-2.5,41-3,6.5))).extrude(Base.Vector(0,0,.3))
-        self.l2ball = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,6.5))))).extrude(Base.Vector(0,0,.2))
-        temp = Part.Face(Part.makeWireString("L","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
-        self.l2ballL = temp.translate(origin.add(Base.Vector(19.16-2.5,32-3,6.5))).extrude(Base.Vector(0,0,.3))
+        self.caseL = signcaseface.face.extrude(Base.Vector(0,0,2))
+        signcaseface = WholeSignPath(origin.add(Base.Vector(0,0,-1.5)))
+        self.caseR = signcaseface.face.extrude(Base.Vector(0,0,-2))
+        arrowface = ArrowFace(origin.add(Base.Vector(0,0,3.5)))
+        self.arrowL = arrowface.face.extrude(Base.Vector(0,0,.1))
+        arrowface = ArrowFace(origin.add(Base.Vector(0,0,-3.5)))
+        self.arrowR = arrowface.face.extrude(Base.Vector(0,0,-.1))
+        cueface = VCueFace(origin.add(Base.Vector(0,0,3.5)))
+        self.cueL = cueface.face.extrude(Base.Vector(0,0,.1))
+        cueface = VCueFace(origin.add(Base.Vector(0,0,-3.5)))
+        self.cueR = cueface.face.extrude(Base.Vector(0,0,-.1))
+        self.tableL = Part.makePlane(18-6.35,71.12-6.35,origin.add(Base.Vector(10.16+3.175,5.08+3.175,3.5))).extrude(Base.Vector(0,0,.1))
+        self.tableR = Part.makePlane(18-6.35,71.12-6.35,origin.add(Base.Vector(10.16+3.175,5.08+3.175,-3.5))).extrude(Base.Vector(0,0,-.1))
+        self.tableOutlineL = Part.makePlane(18,71.12,origin.add(Base.Vector(10.16,5.08,3.5))).extrude(Base.Vector(0,0,.1))
+        self.tableOutlineR = Part.makePlane(18,71.12,origin.add(Base.Vector(10.16,5.08,-3.5))).extrude(Base.Vector(0,0,-.1))
+        self.eightballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,3.5))))).extrude(Base.Vector(0,0,.2))
+        self.eightballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        tempL = Part.Face(Part.makeWireString("8","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
+        tempR = tempL.copy()
+        self.eightball8L = tempL.translate(origin.add(Base.Vector(19.16-2.5,68-3,3.5))).extrude(Base.Vector(0,0,.3))
+        self.eightball8R = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,68-3,-3.5))).extrude(Base.Vector(0,0,-.3))
+        self.bballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,3.5))))).extrude(Base.Vector(0,0,.2))
+        self.bballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        tempL = Part.Face(Part.makeWireString("B","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
+        tempR = tempL.copy() 
+        self.bballBL = tempL.translate(origin.add(Base.Vector(19.16-2.5,59-3,3.5))).extrude(Base.Vector(0,0,.3))
+        self.bballBR = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,59-3,-3.5))).extrude(Base.Vector(0,0,-.3))
+        self.aballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,50,3.5))))).extrude(Base.Vector(0,0,.2))
+        self.aballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,50,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        tempL = Part.Face(Part.makeWireString("A","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
+        tempR = tempL.copy()
+        self.aballAL = tempL.translate(origin.add(Base.Vector(19.16-2.5,50-3,3.5))).extrude(Base.Vector(0,0,.3))
+        self.aballAR = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,50-3,-3.5))).extrude(Base.Vector(0,0,-.3))
+        self.l1ballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,41,3.5))))).extrude(Base.Vector(0,0,.2))
+        self.l1ballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,41,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        tempL = Part.Face(Part.makeWireString("L","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
+        tempR = tempL.copy() 
+        self.l1ballLL = tempL.translate(origin.add(Base.Vector(19.16-2.5,41-3,3.5))).extrude(Base.Vector(0,0,.3))
+        self.l1ballLR = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,41-3,-3.5))).extrude(Base.Vector(0,0,-.3))
+        self.l2ballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,3.5))))).extrude(Base.Vector(0,0,.2))
+        self.l2ballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        tempL = Part.Face(Part.makeWireString("L","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
+        tempR = tempL.copy() 
+        self.l2ballLL = tempL.translate(origin.add(Base.Vector(19.16-2.5,32-3,3.5))).extrude(Base.Vector(0,0,.3))
+        self.l2ballLR = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,32-3,-3.5))).extrude(Base.Vector(0,0,-.3))
         club = Part.makeWireString("CLUB","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",2.6,0.0)
-        self.club = list()
-        self.club.append(Part.Face(club[0]).translate(origin.add(Base.Vector(19.16-4,32-10,6.5))).extrude(Base.Vector(0,0,.2)))
-        self.club.append(Part.Face(club[1]).translate(origin.add(Base.Vector(19.16-4,32-13,6.5))).extrude(Base.Vector(0,0,.2)))
-        self.club.append(Part.Face(club[2]).translate(origin.add(Base.Vector(19.16-4,32-16,6.5))).extrude(Base.Vector(0,0,.2)))
-        self.club.append(Part.Face(club[3]).translate(origin.add(Base.Vector(19.16-4,32-19,6.5))).extrude(Base.Vector(0,0,.2)))
+        self.clubL = list()
+        self.clubR = list()
+        self.clubL.append(Part.Face(club[0]).translate(origin.add(Base.Vector(19.16-4,32-10,3.5))).extrude(Base.Vector(0,0,.2)))
+        self.clubL.append(Part.Face(club[1]).translate(origin.add(Base.Vector(19.16-4,32-13,3.5))).extrude(Base.Vector(0,0,.2)))
+        self.clubL.append(Part.Face(club[2]).translate(origin.add(Base.Vector(19.16-4,32-16,3.5))).extrude(Base.Vector(0,0,.2)))
+        self.clubL.append(Part.Face(club[3]).translate(origin.add(Base.Vector(19.16-4,32-19,3.5))).extrude(Base.Vector(0,0,.2)))
+        self.clubR.append(Part.Face(club[0]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-10,-3.5))).extrude(Base.Vector(0,0,-.2)))
+        self.clubR.append(Part.Face(club[1]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-13,-3.5))).extrude(Base.Vector(0,0,-.2)))
+        self.clubR.append(Part.Face(club[2]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-16,-3.5))).extrude(Base.Vector(0,0,-.2)))
+        self.clubR.append(Part.Face(club[3]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-19,-3.5))).extrude(Base.Vector(0,0,-.2)))
     def show(self):
         doc = App.activeDocument()
-        obj = doc.addObject("Part::Feature",self.name+"_case")
-        obj.Shape=self.case
-        obj.Label=self.name+"_case"
+        obj = doc.addObject("Part::Feature",self.name+"_caseL")
+        obj.Shape=self.caseL
+        obj.Label=self.name+"_caseL"
         obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_arrow")
-        obj.Shape=self.arrow
-        obj.Label=self.name+"_arrow"
+        obj = doc.addObject("Part::Feature",self.name+"_caseR")
+        obj.Shape=self.caseR
+        obj.Label=self.name+"_caseR"
+        obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
+        obj = doc.addObject("Part::Feature",self.name+"_arrowL")
+        obj.Shape=self.arrowL
+        obj.Label=self.name+"_arrowL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_cue")
-        obj.Shape=self.cue
-        obj.Label=self.name+"_cue"
+        obj = doc.addObject("Part::Feature",self.name+"_arrowR")
+        obj.Shape=self.arrowR
+        obj.Label=self.name+"_arrowR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,0.0])
+        obj = doc.addObject("Part::Feature",self.name+"_cueL")
+        obj.Shape=self.cueL
+        obj.Label=self.name+"_cueL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_table")
-        obj.Shape=self.table
-        obj.Label=self.name+"_table"
+        obj = doc.addObject("Part::Feature",self.name+"_cueR")
+        obj.Shape=self.cueR
+        obj.Label=self.name+"_cueR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_tableL")
+        obj.Shape=self.tableL
+        obj.Label=self.name+"_tableL"
         obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_tableOutline")
-        obj.Shape=self.tableOutline
-        obj.Label=self.name+"_tableOutline"
+        obj = doc.addObject("Part::Feature",self.name+"_tableR")
+        obj.Shape=self.tableR
+        obj.Label=self.name+"_tableR"
+        obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
+        obj = doc.addObject("Part::Feature",self.name+"_tableOutlineL")
+        obj.Shape=self.tableOutlineL
+        obj.Label=self.name+"_tableOutlineL"
         obj.ViewObject.ShapeColor=tuple([0.647,0.1647,0.1647])
-        obj = doc.addObject("Part::Feature",self.name+"_eightball")
-        obj.Shape=self.eightball
-        obj.Label=self.name+"_eightball"
+        obj = doc.addObject("Part::Feature",self.name+"_tableOutlineR")
+        obj.Shape=self.tableOutlineR
+        obj.Label=self.name+"_tableOutlineR"
+        obj.ViewObject.ShapeColor=tuple([0.647,0.1647,0.1647])
+        obj = doc.addObject("Part::Feature",self.name+"_eightballL")
+        obj.Shape=self.eightballL
+        obj.Label=self.name+"_eightballL"
         obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_eightball8")
-        obj.Shape=self.eightball8
-        obj.Label=self.name+"_eightball8"
+        obj = doc.addObject("Part::Feature",self.name+"_eightballR")
+        obj.Shape=self.eightballR
+        obj.Label=self.name+"_eightballR"
+        obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
+        obj = doc.addObject("Part::Feature",self.name+"_eightball8L")
+        obj.Shape=self.eightball8L
+        obj.Label=self.name+"_eightball8L"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_bball")
-        obj.Shape=self.bball
-        obj.Label=self.name+"_bball"
+        obj = doc.addObject("Part::Feature",self.name+"_eightball8R")
+        obj.Shape=self.eightball8R
+        obj.Label=self.name+"_eightball8R"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_bballL")
+        obj.Shape=self.bballL
+        obj.Label=self.name+"_bballL"
         obj.ViewObject.ShapeColor=tuple([1.0,0.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_bballB")
-        obj.Shape=self.bballB
-        obj.Label=self.name+"_bballB"
+        obj = doc.addObject("Part::Feature",self.name+"_bballR")
+        obj.Shape=self.bballR
+        obj.Label=self.name+"_bballR"
+        obj.ViewObject.ShapeColor=tuple([1.0,0.0,0.0])
+        obj = doc.addObject("Part::Feature",self.name+"_bballBL")
+        obj.Shape=self.bballBL
+        obj.Label=self.name+"_bballBL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_aball")
-        obj.Shape=self.aball
-        obj.Label=self.name+"_aball"
+        obj = doc.addObject("Part::Feature",self.name+"_bballBR")
+        obj.Shape=self.bballBR
+        obj.Label=self.name+"_bballBR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_aballL")
+        obj.Shape=self.aballL
+        obj.Label=self.name+"_aballL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_aballA")
-        obj.Shape=self.aballA
-        obj.Label=self.name+"_aballA"
+        obj = doc.addObject("Part::Feature",self.name+"_aballR")
+        obj.Shape=self.aballR
+        obj.Label=self.name+"_aballR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,0.0])
+        obj = doc.addObject("Part::Feature",self.name+"_aballAL")
+        obj.Shape=self.aballAL
+        obj.Label=self.name+"_aballAL"
         obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
-        obj = doc.addObject("Part::Feature",self.name+"_l1ball")
-        obj.Shape=self.l1ball
-        obj.Label=self.name+"_l1ball"
-        obj.ViewObject.ShapeColor=tuple([1.0,0.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_aballAR")
+        obj.Shape=self.aballAR
+        obj.Label=self.name+"_aballAR"
+        obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
         obj = doc.addObject("Part::Feature",self.name+"_l1ballL")
         obj.Shape=self.l1ballL
         obj.Label=self.name+"_l1ballL"
+        obj.ViewObject.ShapeColor=tuple([1.0,0.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_l1ballR")
+        obj.Shape=self.l1ballR
+        obj.Label=self.name+"_l1ballR"
+        obj.ViewObject.ShapeColor=tuple([1.0,0.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_l1ballLL")
+        obj.Shape=self.l1ballLL
+        obj.Label=self.name+"_l1ballLL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_l2ball")
-        obj.Shape=self.l2ball
-        obj.Label=self.name+"_l2ball"
-        obj.ViewObject.ShapeColor=tuple([0.0,0.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_l1ballLR")
+        obj.Shape=self.l1ballLR
+        obj.Label=self.name+"_l1ballLR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
         obj = doc.addObject("Part::Feature",self.name+"_l2ballL")
         obj.Shape=self.l2ballL
         obj.Label=self.name+"_l2ballL"
+        obj.ViewObject.ShapeColor=tuple([0.0,0.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_l2ballR")
+        obj.Shape=self.l2ballR
+        obj.Label=self.name+"_l2ballR"
+        obj.ViewObject.ShapeColor=tuple([0.0,0.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_l2ballLL")
+        obj.Shape=self.l2ballLL
+        obj.Label=self.name+"_l2ballLL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_clubC")
-        obj.Shape=self.club[0]
-        obj.Label=self.name+"_clubC"
+        obj = doc.addObject("Part::Feature",self.name+"_l2ballLR")
+        obj.Shape=self.l2ballLR
+        obj.Label=self.name+"_l2ballLR"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_clubL")
-        obj.Shape=self.club[1]
-        obj.Label=self.name+"_clubL"
+        obj = doc.addObject("Part::Feature",self.name+"_clubCL")
+        obj.Shape=self.clubL[0]
+        obj.Label=self.name+"_clubCL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_clubU")
-        obj.Shape=self.club[2]
-        obj.Label=self.name+"_clubU"
+        obj = doc.addObject("Part::Feature",self.name+"_clubLL")
+        obj.Shape=self.clubL[1]
+        obj.Label=self.name+"_clubLL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        obj = doc.addObject("Part::Feature",self.name+"_clubB")
-        obj.Shape=self.club[3]
-        obj.Label=self.name+"_clubB"
+        obj = doc.addObject("Part::Feature",self.name+"_clubUL")
+        obj.Shape=self.clubL[2]
+        obj.Label=self.name+"_clubUL"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
-        
-        self.board.show()
+        obj = doc.addObject("Part::Feature",self.name+"_clubBL")
+        obj.Shape=self.clubL[3]
+        obj.Label=self.name+"_clubBL"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_clubCR")
+        obj.Shape=self.clubR[0]
+        obj.Label=self.name+"_clubCR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_clubLR")
+        obj.Shape=self.clubR[1]
+        obj.Label=self.name+"_clubLR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_clubUR")
+        obj.Shape=self.clubR[2]
+        obj.Label=self.name+"_clubUR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        obj = doc.addObject("Part::Feature",self.name+"_clubBR")
+        obj.Shape=self.clubR[3]
+        obj.Label=self.name+"_clubBR"
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
+        self.boardL.show()
+        self.boardR.show()
 
 if __name__ == '__main__':
     App.ActiveDocument=App.newDocument("Temp")
     doc = App.activeDocument()
-    sign = Sign("pcb",Base.Vector(0,0,0))
+    sign = SignLeft("signLeft",Base.Vector(0,0,0))
     sign.show()
     Gui.SendMsgToActiveView("ViewFit")

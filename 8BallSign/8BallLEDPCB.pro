@@ -1,4 +1,4 @@
-update=Fri 03 Feb 2023 04:06:31 PM EST
+update=Sat 04 Feb 2023 01:13:41 PM EST
 version=1
 last_client=kicad
 [pcbnew]
@@ -23,6 +23,8 @@ ModuleOutlineThickness=0.150000000000
 [cvpcb]
 version=1
 NetIExt=net
+[general]
+version=1
 [eeschema]
 version=1
 LibDir=
@@ -59,5 +61,5 @@ LibName29=opto
 LibName30=atmel
 LibName31=contrib
 LibName32=valves
-[general]
-version=1
+LibName33=tbd62x83a
+LibName34=led_3in1

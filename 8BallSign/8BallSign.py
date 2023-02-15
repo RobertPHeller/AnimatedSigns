@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 3 15:28:08 2023
-#  Last Modified : <230204.1732>
+#  Last Modified : <230215.1514>
 #
 #  Description	
 #
@@ -56,6 +56,9 @@ class VCueFace(object):
         end=Part.Face(Part.Wire(Part.makeCircle(1.0,Base.Vector(30,74,0))))
         stick=Part.Face(Part.Wire(Part.makePolygon([(29,74,0),(31,74,0),(30,5,0),(29,74,0)])))
         self.face=end.fuse(stick).translate(origin)
+    def CueCutout(self,Z,depth):
+        orig = Base.Vector(self.origin.x+29,self.origin.y+5,Z)
+        return Part.makePlane(2,73-5,orig).extrude(Base.Vector(0,0,depth))
         
 class ArrowFace(object):
     def __init__(self,origin,headlength=5.08,headthickness=5.08,\
@@ -120,6 +123,9 @@ class SignPCB(object):
             x,y,z = tup
             polypoints.append(origin.add(Base.Vector(x,y,z)))
         self.board=Part.Face(Part.Wire(Part.makePolygon(polypoints))).extrude(Base.Vector(0,0,1.5*extrude))
+        self.polypoints = polypoints
+        self.surfaceZ = origin.z+(1.5*extrude)
+        self.extrude = extrude
     def show(self):
         doc = App.activeDocument()
         obj = doc.addObject("Part::Feature",self.name)
@@ -127,7 +133,7 @@ class SignPCB(object):
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
         
-class SignLeft(object):
+class SignBothSides(object):
     def __init__(self,name,origin):
         self.name=name
         if not isinstance(origin,Base.Vector):
@@ -141,24 +147,34 @@ class SignLeft(object):
         self.caseR = signcaseface.face.extrude(Base.Vector(0,0,-2))
         arrowface = ArrowFace(origin.add(Base.Vector(0,0,3.5)))
         self.arrowL = arrowface.face.extrude(Base.Vector(0,0,.1))
+        arrowcut = ArrowFace(origin.add(Base.Vector(0,0,1.5))).face.extrude(Base.Vector(0,0,2))
+        self.caseL = self.caseL.cut(arrowcut)
         arrowface = ArrowFace(origin.add(Base.Vector(0,0,-3.5)))
         self.arrowR = arrowface.face.extrude(Base.Vector(0,0,-.1))
+        arrowcut = ArrowFace(origin.add(Base.Vector(0,0,-1.5))).face.extrude(Base.Vector(0,0,-2))
+        self.caseR = self.caseR.cut(arrowcut)
         cueface = VCueFace(origin.add(Base.Vector(0,0,3.5)))
         self.cueL = cueface.face.extrude(Base.Vector(0,0,.1))
+        self.caseL = self.caseL.cut(cueface.CueCutout(1.5,2))
         cueface = VCueFace(origin.add(Base.Vector(0,0,-3.5)))
         self.cueR = cueface.face.extrude(Base.Vector(0,0,-.1))
+        self.caseR = self.caseR.cut(cueface.CueCutout(-1.5,-2))
         self.tableL = Part.makePlane(18-6.35,71.12-6.35,origin.add(Base.Vector(10.16+3.175,5.08+3.175,3.5))).extrude(Base.Vector(0,0,.1))
         self.tableR = Part.makePlane(18-6.35,71.12-6.35,origin.add(Base.Vector(10.16+3.175,5.08+3.175,-3.5))).extrude(Base.Vector(0,0,-.1))
         self.tableOutlineL = Part.makePlane(18,71.12,origin.add(Base.Vector(10.16,5.08,3.5))).extrude(Base.Vector(0,0,.1))
         self.tableOutlineR = Part.makePlane(18,71.12,origin.add(Base.Vector(10.16,5.08,-3.5))).extrude(Base.Vector(0,0,-.1))
         self.eightballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,3.5))))).extrude(Base.Vector(0,0,.2))
+        self.caseL = self.caseL.cut(Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,1.5))))).extrude(Base.Vector(0,0,2)))
         self.eightballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        self.caseR = self.caseR.cut(Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,68,-1.5))))).extrude(Base.Vector(0,0,-2)))
         tempL = Part.Face(Part.makeWireString("8","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
         tempR = tempL.copy()
         self.eightball8L = tempL.translate(origin.add(Base.Vector(19.16-2.5,68-3,3.5))).extrude(Base.Vector(0,0,.3))
         self.eightball8R = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,68-3,-3.5))).extrude(Base.Vector(0,0,-.3))
         self.bballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,3.5))))).extrude(Base.Vector(0,0,.2))
         self.bballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        self.caseL = self.caseL.cut(Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,1.5))))).extrude(Base.Vector(0,0,2)))
+        self.caseR = self.caseR.cut(Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,59,-1.5))))).extrude(Base.Vector(0,0,-2)))
         tempL = Part.Face(Part.makeWireString("B","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
         tempR = tempL.copy() 
         self.bballBL = tempL.translate(origin.add(Base.Vector(19.16-2.5,59-3,3.5))).extrude(Base.Vector(0,0,.3))
@@ -177,6 +193,10 @@ class SignLeft(object):
         self.l1ballLR = tempR.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+2.5,41-3,-3.5))).extrude(Base.Vector(0,0,-.3))
         self.l2ballL = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,3.5))))).extrude(Base.Vector(0,0,.2))
         self.l2ballR = Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,-3.5))))).extrude(Base.Vector(0,0,-.2))
+        self.caseL = self.caseL.cut(Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,1.5))))).extrude(Base.Vector(0,0,2)))
+        self.caseR = self.caseR.cut(Part.Face(Part.Wire(Part.makeCircle(4.572,origin.add(Base.Vector(19.16,32,-1.5))))).extrude(Base.Vector(0,0,-2)))
+        self.caseL = self.caseL.cut(Part.makePlane(4.572*2,59-32,origin.add(Base.Vector(19.16-4.572,32,1.5))).extrude(Base.Vector(0,0,2)))
+        self.caseR = self.caseR.cut(Part.makePlane(4.572*2,59-32,origin.add(Base.Vector(19.16-4.572,32,-1.5))).extrude(Base.Vector(0,0,-2)))
         tempL = Part.Face(Part.makeWireString("L","/usr/share/fonts/truetype/open-sans/","OpenSans-Bold.ttf",8,0.0)[0])
         tempR = tempL.copy() 
         self.l2ballLL = tempL.translate(origin.add(Base.Vector(19.16-2.5,32-3,3.5))).extrude(Base.Vector(0,0,.3))
@@ -192,6 +212,8 @@ class SignLeft(object):
         self.clubR.append(Part.Face(club[1]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-13,-3.5))).extrude(Base.Vector(0,0,-.2)))
         self.clubR.append(Part.Face(club[2]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-16,-3.5))).extrude(Base.Vector(0,0,-.2)))
         self.clubR.append(Part.Face(club[3]).rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).translate(origin.add(Base.Vector(19.16+4,32-19,-3.5))).extrude(Base.Vector(0,0,-.2)))
+        self.caseL = self.caseL.cut(Part.makePlane(10,14,origin.add(Base.Vector(14,11,1.5))).extrude(Base.Vector(0,0,2)))
+        self.caseR = self.caseR.cut(Part.makePlane(10,14,origin.add(Base.Vector(14,11,-1.5))).extrude(Base.Vector(0,0,-2)))
     def show(self):
         doc = App.activeDocument()
         obj = doc.addObject("Part::Feature",self.name+"_caseL")
@@ -352,6 +374,6 @@ class SignLeft(object):
 if __name__ == '__main__':
     App.ActiveDocument=App.newDocument("Temp")
     doc = App.activeDocument()
-    sign = SignLeft("signLeft",Base.Vector(0,0,0))
+    sign = SignBothSides("signBothSides",Base.Vector(0,0,0))
     sign.show()
     Gui.SendMsgToActiveView("ViewFit")

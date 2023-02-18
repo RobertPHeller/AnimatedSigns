@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 17 15:01:16 2023
-#  Last Modified : <230218.0955>
+#  Last Modified : <230218.1420>
 #
 #  Description	
 #
@@ -158,6 +158,22 @@ class Door(object):
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([165.0/255.0,42.0/255.0,42.0/255.0])
         
+class Bar(object):
+    width_ = (24.0/87)*25.4
+    height_ = (42.0/87)*25.4
+    def __init__(self,name,origin,length):
+        if not isinstance(origin,Base.Vector):
+            raise RuntimeError("origin is not a Vector!")
+        self.origin=origin
+        self.name = name
+        self.bar = Part.makePlane(self.width_,length,origin).extrude(Base.Vector(0,0,self.height_))
+    def show(self):
+        doc = App.activeDocument()
+        obj = doc.addObject("Part::Feature",self.name)
+        obj.Shape=self.bar
+        obj.Label=self.name
+        obj.ViewObject.ShapeColor=tuple([165.0/255.0,42.0/255.0,42.0/255.0])
+    
 if __name__ == '__main__':
     App.ActiveDocument=App.newDocument("Temp")
     doc = App.activeDocument()
@@ -208,6 +224,11 @@ if __name__ == '__main__':
     b10.show()
     bardoor = Door("bardoor",backwall.origin.add(Base.Vector(Hall.Width()-(6/87)*25.4-Door.Width(),0,0)))
     bardoor.show()
+    barX = b10.origin.x+((30.0/87)*25.4)
+    barorig = floor.origin.add(Base.Vector(barX,0,1))
+    barlen = backwall.origin.y-floor.origin.y
+    bar = Bar("bar",barorig,barlen)
+    bar.show()
     Gui.SendMsgToActiveView("ViewFit")
     
 

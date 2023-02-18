@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 17 15:01:16 2023
-#  Last Modified : <230217.1554>
+#  Last Modified : <230218.0955>
 #
 #  Description	
 #
@@ -78,6 +78,9 @@ class Booth(object):
     @staticmethod
     def Spacing():
         return (66.0/87.0)*25.4
+    @staticmethod
+    def Length():
+        return Booth.length_
     def __init__(self,name,origin,left=True):
         if not isinstance(origin,Base.Vector):
             raise RuntimeError("origin is not a Vector!")
@@ -96,7 +99,13 @@ class Booth(object):
         
 class Hall(object):
     depth_ = (4.0+5.0/8.0)*25.4
+    @staticmethod
+    def Depth():
+        return Hall.depth_
     width_ = (5.0+13.0/16.0)*25.4
+    @staticmethod
+    def Width():
+        return Hall.width_
     def __init__(self,name,origin):
         if not isinstance(origin,Base.Vector):
             raise RuntimeError("origin is not a Vector!")
@@ -110,7 +119,45 @@ class Hall(object):
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
         
+class Wall(object):
+    thick_ = (3.0/87)*25.4
+    height_ = ((8.0*12)/87)*25.4
+    def __init__(self,name,origin,length,ishoriz=True):
+        if not isinstance(origin,Base.Vector):
+            raise RuntimeError("origin is not a Vector!")
+        self.origin=origin
+        self.name = name
+        if ishoriz:
+            self.wall = Part.makePlane(length,self.thick_,origin).extrude(Base.Vector(0,0,self.height_))
+        else:
+            self.wall = Part.makePlane(self.thick_,length,origin).extrude(Base.Vector(0,0,self.height_))
+    def show(self):
+        doc = App.activeDocument()
+        obj = doc.addObject("Part::Feature",self.name)
+        obj.Shape=self.wall
+        obj.Label=self.name
+        obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
 
+class Door(object):
+    thick_ = (3.0/87)*25.4
+    height_ = ((7.0*12)/87)*25.4
+    width_ = (25.0/87)*25.4
+    @staticmethod
+    def Width():
+        return Door.width_
+    def __init__(self,name,origin):
+        if not isinstance(origin,Base.Vector):
+            raise RuntimeError("origin is not a Vector!")
+        self.origin=origin
+        self.name = name
+        self.door = Part.makePlane(self.width_,self.thick_,origin).extrude(Base.Vector(0,0,self.height_))
+    def show(self):
+        doc = App.activeDocument()
+        obj = doc.addObject("Part::Feature",self.name)
+        obj.Shape=self.door
+        obj.Label=self.name
+        obj.ViewObject.ShapeColor=tuple([165.0/255.0,42.0/255.0,42.0/255.0])
+        
 if __name__ == '__main__':
     App.ActiveDocument=App.newDocument("Temp")
     doc = App.activeDocument()
@@ -135,10 +182,32 @@ if __name__ == '__main__':
     b3.show()
     b4 = Booth("booth4",b2.origin.add(Base.Vector(Booth.Spacing(),0,0)),False)
     b4.show()
-    b5 = Booth("booth5",b4.origin.add(Base.Vector(Booth.Spacing(),0,0)))
+    backwall = Wall("backwall",b1.origin.add(Base.Vector(0,Booth.Length(),0)),Hall.Width())
+    backwall.show()
+    gents = Door("gents",b4.origin.add(Base.Vector((6/87)*25.4,Booth.Length(),0)))
+    gents.show()
+    backdepth = Hall.Depth() - (backwall.origin.y-floor.origin.y)
+    rrwall1 = Wall("restroomwall1",gents.origin.add(Base.Vector(Door.Width()+((6-1.5)/87)*25.4,0,0)),backdepth,False)
+    rrwall1.show()
+    rrwall2Xoff = rrwall1.origin.x-floor.origin.x
+    rrwall2 = Wall("restroomwall2",rrwall1.origin.add(Base.Vector(rrwall2Xoff,0,0)),backdepth,False)
+    rrwall2.show()
+    ladies = Door("ladies",gents.origin.add(Base.Vector(Door.Width()+(12/87)*25.4,0,0)))
+    ladies.show()
+    b5 = Booth("booth5",ladies.origin.add(Base.Vector(Door.Width()+(6/87)*25.4,-Booth.Length(),0)))
     b5.show()
     b6 = Booth("booth6",b5.origin.add(Base.Vector(Booth.Spacing(),0,0)),False)
     b6.show()
+    b7 = Booth("booth7",b5.origin.add(Base.Vector(Booth.Spacing(),0,0)))
+    b7.show()
+    b8 = Booth("booth8",b7.origin.add(Base.Vector(Booth.Spacing(),0,0)),False)
+    b8.show()
+    b9 = Booth("booth9",b7.origin.add(Base.Vector(Booth.Spacing(),0,0)))
+    b9.show()
+    b10 = Booth("booth10",b9.origin.add(Base.Vector(Booth.Spacing(),0,0)),False)
+    b10.show()
+    bardoor = Door("bardoor",backwall.origin.add(Base.Vector(Hall.Width()-(6/87)*25.4-Door.Width(),0,0)))
+    bardoor.show()
     Gui.SendMsgToActiveView("ViewFit")
     
 

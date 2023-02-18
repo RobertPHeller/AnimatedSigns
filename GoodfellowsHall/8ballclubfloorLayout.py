@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 17 15:01:16 2023
-#  Last Modified : <230218.1420>
+#  Last Modified : <230218.1642>
 #
 #  Description	
 #
@@ -49,7 +49,13 @@ from math import *
 
 class BarPoolTable(object):
     width_ = (39.0/87.0)*25.4
+    @staticmethod
+    def Width():
+        return BarPoolTable.width_
     length_ = (78.0/87.0)*25.4
+    @staticmethod
+    def Length():
+        return BarPoolTable.length_
     height_ = (30.0/87.0)*25.4
     @staticmethod
     def Spacing():
@@ -71,6 +77,69 @@ class BarPoolTable(object):
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
         
+class PoolTableLight(object):
+    width_ = (18.0/87.0)*25.4
+    @staticmethod
+    def Width():
+        return PoolTableLight.width_
+    length_ = (72.0/87.0)*25.4
+    @staticmethod
+    def Length():
+        return PoolTableLight.length_
+    flatwidth_ = (6.0/87.0)*25.4
+    @staticmethod
+    def FlatWidth():
+        return PoolTableLight.flatwidth_
+    curverad_ = (6.0/87.0)*25.4
+    def __init__(self,name,origin):
+        if not isinstance(origin,Base.Vector):
+            raise RuntimeError("origin is not a Vector!")
+        self.origin=origin
+        self.name = name
+        XOrient = Base.Vector(1,0,0)
+        lextrude = Base.Vector(self.length_,0,0)
+        r = self.curverad_
+        print("*** PoolTableLight(): origin is ",origin.x,origin.y,origin.z,file=sys.stderr)
+        o = origin.add(Base.Vector(0,(self.flatwidth_/2.0+self.curverad_),-self.curverad_))
+        print("*** PoolTableLight(): o [l] is ",o.x,o.y,o.z,file=sys.stderr)        
+        a1c = Part.makeCircle(r,o,XOrient)
+        a1 = Part.Face(Part.Wire(a1c)).extrude(lextrude)
+        a2c = Part.makeCircle(r-.25,o,XOrient)
+        a2 = Part.Face(Part.Wire(a2c)).extrude(lextrude)
+        a1 = a1.cut(a2)
+        b1w = self.curverad_
+        b1l = self.curverad_*2
+        b1orig = o.add(Base.Vector(0,0,-r))
+        b1 = Part.makePlane(b1l,b1w,b1orig,XOrient).extrude(lextrude)
+        al = a1.cut(b1)
+        b1orig = b1orig.add(Base.Vector(0,r,0))
+        b1 = Part.makePlane(b1w,b1w,b1orig,XOrient).extrude(lextrude)
+        al = al.cut(b1)
+        o = origin.add(Base.Vector(0,(self.flatwidth_/2.0),0))
+        f = Part.makePlane(self.length_,self.flatwidth_,o).extrude(Base.Vector(0,0,-.25))
+        o = origin.add(Base.Vector(0,-(self.flatwidth_/2.0-self.curverad_),-self.curverad_))
+        print("*** PoolTableLight(): o [r] is ",o.x,o.y,o.z,file=sys.stderr)        
+        a1c = Part.makeCircle(r,o,XOrient)
+        a1 = Part.Face(Part.Wire(a1c)).extrude(lextrude)
+        a2c = Part.makeCircle(r-.25,o,XOrient)
+        a2 = Part.Face(Part.Wire(a2c)).extrude(lextrude)
+        ar = a1.cut(a2)
+        b1w = self.curverad_
+        b1l = self.curverad_*2
+        b1orig = o.add(Base.Vector(0,r,-r))
+        b1 = Part.makePlane(b1l,b1w,b1orig,XOrient).extrude(lextrude)
+        ar = ar.cut(b1)
+        b1orig = b1orig.add(Base.Vector(0,0,0))
+        b1 = Part.makePlane(b1w,b1l,b1orig,XOrient).extrude(lextrude)
+        ar = ar.cut(b1)
+        self.a = al.fuse(f).fuse(ar)
+    def show(self):
+        doc = App.activeDocument()
+        obj = doc.addObject("Part::Feature",self.name)
+        obj.Shape=self.a
+        obj.Label=self.name
+        obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
+    
 class Booth(object):
     length_ = (48.0/87.0)*25.4
     width_  = (24.0/87.0)*25.4
@@ -229,6 +298,14 @@ if __name__ == '__main__':
     barlen = backwall.origin.y-floor.origin.y
     bar = Bar("bar",barorig,barlen)
     bar.show()
+    l1x = t1.origin.x+(BarPoolTable.Length()-PoolTableLight.Length())/2.0
+    lz = floor.origin.z+(72.0/87)*25.4
+    l1y = t1.origin.y+(BarPoolTable.Width()/2.0)-(PoolTableLight.FlatWidth())
+    l = PoolTableLight("pooltablelight",Base.Vector(l1x,
+                                                    l1y,\
+                                                    lz))
+    l.show()
+    Gui.activeDocument().activeView().viewLeft()
     Gui.SendMsgToActiveView("ViewFit")
     
 

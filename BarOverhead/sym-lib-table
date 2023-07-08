@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "BarOverhead-rescue")(type "Legacy")(uri "${KIPRJMOD}/BarOverhead-rescue.lib")(options "")(descr ""))
+)

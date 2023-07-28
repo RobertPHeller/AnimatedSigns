@@ -69,26 +69,39 @@ static Stm32Can can0("/dev/can0");
 static Stm32EEPROMEmulation eeprom0("/dev/eeprom", 8192);
 // originally 4000
 
-/** UART 0 serial driver instance */
-static Stm32I2C i2c1("/dev/i2c0", I2C1, I2C1_EV_IRQn, I2C1_ER_IRQn);
-
 /** How many bytes of flash should hold the entire dataset. Must be an integer
  * multiple of the minimum erase length (which is the flash page length, for
  * the STM32F0 | STM32F3 it is 2 kbytes). The file size maximum is half this
  * value. */
 const size_t EEPROMEmulation::SECTOR_SIZE = 16384;
 
-Stm32PWMGroup servo_timer(TIM3, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+Stm32PWMGroup pwmtimer_2(TIM2, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
                           configCPU_CLOCK_HZ * 6 / 1000);
 
-extern PWM* const servo_channels[];
+Stm32PWMGroup pwmtimer_3(TIM3, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                          configCPU_CLOCK_HZ * 6 / 1000);
+
+Stm32PWMGroup pwmtimer_4(TIM4, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                          configCPU_CLOCK_HZ * 6 / 1000);
+
+Stm32PWMGroup pwmtimer_17(TIM17, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                          configCPU_CLOCK_HZ * 6 / 1000);
+Stm32PWMGroup pwmtimer_16(TIM16, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                          configCPU_CLOCK_HZ * 6 / 1000);
+
+extern PWM* const pwmchannels[];
 /// The order of these channels follows the schematic arrangement of MCU pins
 /// to logical servo ports.
-PWM * const servo_channels[4] = { //
-    Stm32PWMGroup::get_channel(&servo_timer, 4),
-    Stm32PWMGroup::get_channel(&servo_timer, 2),
-    Stm32PWMGroup::get_channel(&servo_timer, 3),
-    Stm32PWMGroup::get_channel(&servo_timer, 1)};
+PWM * const pwmchannels[8] = { //
+    Stm32PWMGroup::get_channel(&pwmtimer_2, 4), // D2
+    Stm32PWMGroup::get_channel(&pwmtimer_2, 2), // D3
+    Stm32PWMGroup::get_channel(&pwmtimer_3, 2), // D4
+    Stm32PWMGroup::get_channel(&pwmtimer_3, 1), // D5
+    Stm32PWMGroup::get_channel(&pwmtimer_2, 3), // D6
+    Stm32PWMGroup::get_channel(&pwmtimer_4, 1), // D10
+    Stm32PWMGroup::get_channel(&pwmtimer_17,1), // D11
+    Stm32PWMGroup::get_channel(&pwmtimer_16,1) // D12
+};
 
 extern "C" {
 
@@ -118,23 +131,12 @@ void setblink(uint32_t pattern)
     resetblink(pattern);
 }
 
-void i2c1_ev_interrupt_handler(void)
-{
-    i2c1.event_interrupt_handler();
-}
-
-void i2c1_er_interrupt_handler(void)
-{
-    i2c1.error_interrupt_handler();
-}
-
-/// TIM17 shares this interrupt with certain features of timer1
-void tim1_trg_com_interrupt_handler(void)
+void tim7_trg_com_interrupt_handler(void)
 {
     //
     // Clear the timer interrupt.
     //
-    TIM17->SR = ~TIM_IT_UPDATE;
+    TIM7->SR = ~TIM_IT_UPDATE;
 
     // Set output LED.
     BLINKER_RAW_Pin::set(rest_pattern & 1);
@@ -236,8 +238,12 @@ void hw_preinit(void)
     __HAL_RCC_GPIOF_CLK_ENABLE();
     __HAL_RCC_USART2_CLK_ENABLE();
     __HAL_RCC_CAN1_CLK_ENABLE();
-    __HAL_RCC_TIM17_CLK_ENABLE();
+    __HAL_RCC_TIM7_CLK_ENABLE();
+    __HAL_RCC_TIM2_CLK_ENABLE();
     __HAL_RCC_TIM3_CLK_ENABLE();
+    __HAL_RCC_TIM4_CLK_ENABLE();
+    __HAL_RCC_TIM16_CLK_ENABLE();
+    __HAL_RCC_TIM17_CLK_ENABLE();
 
     /* setup pinmux */
     GPIO_InitTypeDef gpio_init;
@@ -264,38 +270,43 @@ void hw_preinit(void)
     gpio_init.Pin = GPIO_PIN_12;
     HAL_GPIO_Init(GPIOA, &gpio_init);
 
-    /* I2C1 pinmux on PB8 (SCL), and PB9 (SDA) (Arduino A4 and A5)*/
-    gpio_init.Mode = GPIO_MODE_AF_OD;
-    // Disables pull-ups because this is a 5V tolerant pin.
-    gpio_init.Pull = GPIO_NOPULL;
-    gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
-    gpio_init.Alternate = GPIO_AF4_I2C1;
-    gpio_init.Pin = GPIO_PIN_8;
-    HAL_GPIO_Init(GPIOB, &gpio_init);
-    gpio_init.Pin = GPIO_PIN_9;
-    HAL_GPIO_Init(GPIOB, &gpio_init);
-
     GpioInit::hw_init();
 
     // Switches over servo timer pins to timer mode.
-    // PC4-5-6-8
+    // PA10 (AF10_TIM2), PB3 (AF1_TIM2), PB5 (Af2_TIM3), PB4 (Af2_TIM3), 
+    // PB10 (AF1_TIM2), PB6 (AF2_TIM4), PA7 (AF1_TIM17), PA6 (AF1_TIM16)
     gpio_init.Mode = GPIO_MODE_AF_PP;
     gpio_init.Pull = GPIO_NOPULL;
     gpio_init.Speed = GPIO_SPEED_FREQ_HIGH;
+    gpio_init.Alternate = GPIO_AF10_TIM2;
+    gpio_init.Pin = GPIO_PIN_10;
+    HAL_GPIO_Init(GPIOA, &gpio_init);
+    gpio_init.Alternate = GPIO_AF1_TIM2;
+    gpio_init.Pin = GPIO_PIN_3;
+    HAL_GPIO_Init(GPIOB, &gpio_init);
+    gpio_init.Alternate = GPIO_AF2_TIM3;
+    gpio_init.Pin = GPIO_PIN_5;
+    HAL_GPIO_Init(GPIOB, &gpio_init);
     gpio_init.Alternate = GPIO_AF2_TIM3;
     gpio_init.Pin = GPIO_PIN_4;
-    HAL_GPIO_Init(GPIOC, &gpio_init);
-    gpio_init.Pin = GPIO_PIN_5;
-    HAL_GPIO_Init(GPIOC, &gpio_init);
+    HAL_GPIO_Init(GPIOB, &gpio_init);
+    gpio_init.Alternate = GPIO_AF1_TIM2;
+    gpio_init.Pin = GPIO_PIN_10;
+    HAL_GPIO_Init(GPIOB, &gpio_init);
+    gpio_init.Alternate = GPIO_AF2_TIM4;
     gpio_init.Pin = GPIO_PIN_6;
-    HAL_GPIO_Init(GPIOC, &gpio_init);
-    gpio_init.Pin = GPIO_PIN_8;
-    HAL_GPIO_Init(GPIOC, &gpio_init);
+    HAL_GPIO_Init(GPIOB, &gpio_init);
+    gpio_init.Alternate = GPIO_AF1_TIM17;
+    gpio_init.Pin = GPIO_PIN_7;
+    HAL_GPIO_Init(GPIOA, &gpio_init);
+    gpio_init.Alternate = GPIO_AF1_TIM16;
+    gpio_init.Pin = GPIO_PIN_6;
+    HAL_GPIO_Init(GPIOA, &gpio_init);
     
     /* Initializes the blinker timer. */
     TIM_HandleTypeDef TimHandle;
     memset(&TimHandle, 0, sizeof(TimHandle));
-    TimHandle.Instance = TIM17;
+    TimHandle.Instance = TIM7;
     TimHandle.Init.Period = configCPU_CLOCK_HZ / 10000 / 8;
     TimHandle.Init.Prescaler = 10000;
     TimHandle.Init.ClockDivision = 0;
@@ -311,9 +322,9 @@ void hw_preinit(void)
         /* Starting Error */
         HASSERT(0);
     }
-    __HAL_DBGMCU_FREEZE_TIM17();
-    SetInterruptPriority(TIM17_IRQn, 0);
-    NVIC_EnableIRQ(TIM17_IRQn);
+    __HAL_DBGMCU_FREEZE_TIM7();
+    SetInterruptPriority(TIM7_IRQn, 0);
+    NVIC_EnableIRQ(TIM7_IRQn);
 }
 
 void usart2_interrupt_handler(void)

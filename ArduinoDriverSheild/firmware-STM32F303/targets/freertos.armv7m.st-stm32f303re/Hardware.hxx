@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Jul 28 14:52:28 2023
-//  Last Modified : <230728.1455>
+//  Last Modified : <230728.1740>
 //
 //  Description	
 //
@@ -50,18 +50,28 @@
 #include "DummyGPIO.hxx"
 #include "PWM.hxx"
 
-
 GPIO_PIN(LED_GREEN_RAW, LedPin, A, 5);
 
-GPIO_PIN(SW_USER, GpioInputPU, C, 13);
+// Driver (PWM) pins                     
+GPIO_PIN(D2, GpioOutputSafeHigh, A, 10); // TIM2_CH4 (AF10) #1 
+GPIO_PIN(D3, GpioOutputSafeHigh, B, 3);  // TIM2_CH2 (AF1)  #2
+GPIO_PIN(D4, GpioOutputSafeHigh, B, 5);  // TIM3_CH2 (Af2)  #3
+GPIO_PIN(D5, GpioOutputSafeHigh, B, 4);  // TIM3_CH1 (Af2)  #4
+GPIO_PIN(D6, GpioOutputSafeHigh, B, 10); // TIM2_CH3 (AF1)  #5
+GPIO_PIN(D10, GpioOutputSafeHigh, B, 6); // TIM4_CH1 (AF2)  #6
+GPIO_PIN(D11, GpioOutputSafeHigh, A, 7); // TIM17_CH1 (AF1) #7
+GPIO_PIN(D12, GpioOutputSafeHigh, A, 6); // TIM16_CH1 (AF1) #8
 
-
-typedef GpioInitializer<LED_GREEN_RAW_Pin, SW_USER_Pin, //
+         
+typedef GpioInitializer<LED_GREEN_RAW_Pin, //
+    D2_Pin, D3_Pin, D4_Pin, D5_Pin, D6_Pin, D10_Pin, 
+    D11_Pin, D12_Pin,
     DummyPin>
     GpioInit;
 
 typedef LED_GREEN_RAW_Pin BLINKER_RAW_Pin;
 typedef BLINKER_Pin LED_GREEN_Pin;
+
 
 #include "HardwareDEFS.hxx"
 

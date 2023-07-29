@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Jul 28 14:54:20 2023
-//  Last Modified : <230728.1454>
+//  Last Modified : <230729.1151>
 //
 //  Description	
 //
@@ -45,6 +45,7 @@
 #ifndef __HARDWAREDEFS_HXX
 #define __HARDWAREDEFS_HXX
 
+#define OUTPUTCOUNT 8
 
 #endif // __HARDWAREDEFS_HXX
 

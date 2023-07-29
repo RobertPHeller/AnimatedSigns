@@ -259,21 +259,21 @@ void hw_preinit(void)
     gpio_init.Pin = GPIO_PIN_3;
     HAL_GPIO_Init(GPIOA, &gpio_init);
 
-    /* CAN pinmux on PA11 (RX) and PA12 (TX) */
+    /* CAN pinmux on PB8 and PB9 */
     gpio_init.Mode = GPIO_MODE_AF_PP;
     // Disables pull-ups because this is a 5V tolerant pin.
     gpio_init.Pull = GPIO_NOPULL;
     gpio_init.Speed = GPIO_SPEED_FREQ_HIGH;
     gpio_init.Alternate = GPIO_AF9_CAN;
-    gpio_init.Pin = GPIO_PIN_11;
-    HAL_GPIO_Init(GPIOA, &gpio_init);
-    gpio_init.Pin = GPIO_PIN_12;
-    HAL_GPIO_Init(GPIOA, &gpio_init);
+    gpio_init.Pin = GPIO_PIN_8;
+    HAL_GPIO_Init(GPIOB, &gpio_init);
+    gpio_init.Pin = GPIO_PIN_9;
+    HAL_GPIO_Init(GPIOB, &gpio_init);
 
     GpioInit::hw_init();
 
-    // Switches over servo timer pins to timer mode.
-    // PA10 (AF10_TIM2), PB3 (AF1_TIM2), PB5 (Af2_TIM3), PB4 (Af2_TIM3), 
+    // Switches over PWM timer pins to timer mode.
+    // PA10 (AF10_TIM2), PB3 (AF1_TIM2), PB5 (AF2_TIM3), PB4 (AF2_TIM3), 
     // PB10 (AF1_TIM2), PB6 (AF2_TIM4), PA7 (AF1_TIM17), PA6 (AF1_TIM16)
     gpio_init.Mode = GPIO_MODE_AF_PP;
     gpio_init.Pull = GPIO_NOPULL;

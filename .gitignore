@@ -28,6 +28,7 @@
 *.bin
 *.lst
 *.cxxout
+*.hxxout
 *.xmlout
 dirlock
 dirlock.*
@@ -89,6 +90,6 @@ clean.sh
 flash.sh
 monitor.sh
 compile_cdi
-cdidata.hxx
 log
 make.log
+address.h

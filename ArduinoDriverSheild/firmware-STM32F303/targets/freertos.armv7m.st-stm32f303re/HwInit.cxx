@@ -131,7 +131,7 @@ void setblink(uint32_t pattern)
     resetblink(pattern);
 }
 
-void tim7_trg_com_interrupt_handler(void)
+void tim7_interrupt_handler(void)
 {
     //
     // Clear the timer interrupt.

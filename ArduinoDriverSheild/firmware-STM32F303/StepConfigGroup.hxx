@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Feb 5 21:41:05 2023
-//  Last Modified : <230206.1407>
+//  Last Modified : <230826.1153>
 //
 //  Description	
 //
@@ -60,7 +60,7 @@ CDI_GROUP_ENTRY(outputs,OutputConfigGroup,Name("Appearence"),
 CDI_GROUP_ENTRY(time,openlcb::Uint32ConfigEntry,Default(0),
                 Name("Step Time (MilliSecs)"));
 CDI_GROUP_ENTRY(next,openlcb::Uint8ConfigEntry,Default(0),
-                MapValues(NextModeMap));
+                Name("Next Step"),MapValues(NextModeMap));
 CDI_GROUP_ENTRY(start, openlcb::EventConfigEntry,
                 Name("(P) Send this event when the step starts"));
 CDI_GROUP_ENTRY(end, openlcb::EventConfigEntry,

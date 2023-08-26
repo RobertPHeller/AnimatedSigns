@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Apr 3 11:34:45 2023
-#  Last Modified : <230728.1446>
+#  Last Modified : <230808.2011>
 #
 #  Description	
 #
@@ -48,3 +48,9 @@ SUBDIRS = \
 	
 include $(OPENMRNPATH)/etc/recurse.mk
 
+flash:	all
+	+$(MAKE) -C freertos.armv7m.st-stm32f303re flash
+	
+gdb:	flash
+	+$(MAKE) -C freertos.armv7m.st-stm32f303re gdb
+	

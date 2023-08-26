@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Feb 5 21:19:52 2023
-//  Last Modified : <230216.1413>
+//  Last Modified : <230826.1158>
 //
 //  Description	
 //
@@ -46,7 +46,7 @@
 #include "openlcb/ConfigRepresentation.hxx"
 #include "StepConfigGroup.hxx"
 
-#define SEQUENCECOUNT 8
+#define SEQUENCECOUNT 4
 
 static const char YesNoMap[] = 
 "<relation><property>0</property><value>No</value></relation>"

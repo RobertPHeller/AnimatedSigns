@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 29 12:53:21 2023
-//  Last Modified : <230729.1303>
+//  Last Modified : <230826.1157>
 //
 //  Description	
 //
@@ -50,7 +50,7 @@
 #include "Revision.hxxout"
 #include "HardwareDEFS.hxx"
 
-#define CANONICAL_VERSIONOFFSET 0
+#define CANONICAL_VERSIONOFFSET 1
 
 namespace openlcb
 {
@@ -75,7 +75,7 @@ extern const SimpleNodeStaticValues SNIP_STATIC_DATA = {
 /// after an update.
 
 
-static constexpr uint16_t CANONICAL_VERSION = 0x1000 + CANONICAL_VERSIONOFFSET;
+static constexpr uint16_t CANONICAL_VERSION = 0x1003 + CANONICAL_VERSIONOFFSET;
 
 using SequenceConfigGroup = openlcb::RepeatedGroup<SequenceConfig, SEQUENCECOUNT>;
 

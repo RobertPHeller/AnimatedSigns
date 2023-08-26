@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 29 13:08:48 2023
-//  Last Modified : <230729.1318>
+//  Last Modified : <230826.1158>
 //
 //  Description	
 //
@@ -120,9 +120,9 @@ public:
     
     void factory_reset(int fd) override
     {
-        cfg.userinfo().name().write(fd, "Azatrax RIR4");
+        cfg.userinfo().name().write(fd, "ArduinoDriverSheild");
         cfg.userinfo().description().write(
-                                           fd, "Azatrax RIR4 + Nucleo dev board.");
+                                           fd, "Azatrax ArduinoDriverSheild + Nucleo dev board.");
     }
 } factory_reset_helper;
 
@@ -134,14 +134,14 @@ Sequence sequence3(stack.node(),cfg.seg().sequences().entry<2>(),
                    stack.executor()->active_timers());
 Sequence sequence4(stack.node(),cfg.seg().sequences().entry<3>(),
                    stack.executor()->active_timers());
-Sequence sequence5(stack.node(),cfg.seg().sequences().entry<4>(),
-                   stack.executor()->active_timers());
-Sequence sequence6(stack.node(),cfg.seg().sequences().entry<5>(),
-                   stack.executor()->active_timers());
-Sequence sequence7(stack.node(),cfg.seg().sequences().entry<6>(),
-                   stack.executor()->active_timers());
-Sequence sequence8(stack.node(),cfg.seg().sequences().entry<7>(),
-                   stack.executor()->active_timers());
+//Sequence sequence5(stack.node(),cfg.seg().sequences().entry<4>(),
+//                   stack.executor()->active_timers());
+//Sequence sequence6(stack.node(),cfg.seg().sequences().entry<5>(),
+//                    stack.executor()->active_timers());
+//Sequence sequence7(stack.node(),cfg.seg().sequences().entry<6>(),
+//                   stack.executor()->active_timers());
+//Sequence sequence8(stack.node(),cfg.seg().sequences().entry<7>(),
+//                   stack.executor()->active_timers());
 
 /** Entry point to application.
  * @param argc number of command line arguments

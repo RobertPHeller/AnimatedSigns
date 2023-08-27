@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <230729.1158>
+//  Last Modified : <230827.1317>
 //
 //  Description	
 //
@@ -47,6 +47,7 @@
 #include "openlcb/ConfigRepresentation.hxx"
 #include "utils/ConfigUpdateListener.hxx"
 #include "utils/ConfigUpdateService.hxx"
+#include "utils/Uninitialized.hxx"
 #include "openlcb/RefreshLoop.hxx"
 #include "openlcb/SimpleStack.hxx"
 #include "executor/Timer.hxx"
@@ -66,9 +67,9 @@ extern PWM* const pwmchannels[];
 
 class Output : public ConfigUpdateListener, public Timer {
 public:
-    enum OutputID {Unused, Buffer1_, Buffer2_, Buffer3_, Buffer4_, Buffer5_, 
+    enum OutputID : uint8_t {Unused, Buffer1_, Buffer2_, Buffer3_, Buffer4_, Buffer5_, 
               Buffer6_, Buffer7_, Buffer8_};
-    enum OutputMode {On, Off, FadeOn, FadeOff, Flicker};
+    enum OutputMode : uint8_t {On, Off, FadeOn, FadeOff, Flicker};
     Output(const OutputConfig &cfg, ActiveTimers *timers) 
                 : Timer(timers)
           ,cfg_(cfg)
@@ -238,12 +239,12 @@ private:
     
             
     const OutputConfig cfg_;
+    uint16_t brightness_;
+    uint16_t currentbrightness_;
     OutputID outputid_;
     OutputMode mode_;
-    uint16_t brightness_;
+    enum OutputState : uint8_t {on, off, fadeup, fadedown, flickering} currentstate_;
     bool running_;
-    uint16_t currentbrightness_;
-    enum OutputState {on, off, fadeup, fadedown, flickering} currentstate_;
     static PWM* pinlookup_[OUTPUTCOUNT+1];
 };
 
@@ -253,12 +254,12 @@ class Step : public ConfigUpdateListener,
              public Timer, public openlcb::SimpleEventHandler 
 {
 public:
-    enum NextMode {Last, Next, First};
+    enum NextMode : uint8_t {Last, Next, First};
     Step(openlcb::Node *node, const StepConfig &cfg, ActiveTimers *timers, 
          Sequence *parent)
                 : Timer(timers)
-          , node_(node)
           , cfg_(cfg)
+          , node_(node)
           , parent_(parent)
     {
         running_ = false;
@@ -270,7 +271,7 @@ public:
         ended_ = false;
         for (int i = 0; i < OUTPUTCOUNT; i++)
         {
-            outputs_[i] = new Output(cfg_.outputs().entry(i), timers);
+            outputs_[i].emplace(cfg_.outputs().entry(i), timers);
         }
         ConfigUpdateService::instance()->register_update_listener(this);
     }
@@ -401,21 +402,21 @@ private:
         bn_.maybe_done();
     }
     
-    openlcb::Node *node_;
+    BarrierNotifiable bn_;
+    openlcb::WriteHelper write_helpers[2];
     const StepConfig cfg_;
+    openlcb::EventId start_;
+    openlcb::EventId end_;
+    openlcb::Node *node_;
     Sequence *parent_;
     Step *first_;
     Step *next_;
-    bool running_;
-    NextMode nextMode_;
+    uninitialized<Output> outputs_[OUTPUTCOUNT];
     unsigned long time_;
-    openlcb::EventId start_;
-    openlcb::EventId end_;
+    NextMode nextMode_;
     bool started_;
     bool ended_;
-    Output *outputs_[OUTPUTCOUNT];
-    openlcb::WriteHelper write_helpers[2];
-    BarrierNotifiable bn_;
+    bool running_;
 };
             
 class Sequence : public ConfigUpdateListener, 
@@ -423,8 +424,8 @@ class Sequence : public ConfigUpdateListener,
 {
 public:
     Sequence(openlcb::Node *node, const SequenceConfig &cfg, ActiveTimers *timers)
-                : node_(node)
-          , cfg_(cfg)
+                : cfg_(cfg)
+          , node_(node)
     {
         enabled_ = false;
         start_ = 0ULL;
@@ -432,17 +433,17 @@ public:
         stopped_ = true;
         for (int i = 0; i < STEPSCOUNT; i++)
         {
-            steps_[i] = new Step(node_,cfg_.steps().entry(i),timers,this);
+            steps_[i].emplace(node_,cfg_.steps().entry(i),timers,this);
         }
         for (int i = 0; i < STEPSCOUNT; i++)
         {
             if ((i+1)<STEPSCOUNT)
             {
-                steps_[i]->PointerInit(steps_[0],steps_[i+1]);
+                steps_[i]->PointerInit(steps_[0].get_mutable(),steps_[i+1].get_mutable());
             }
             else
             {
-                steps_[i]->PointerInit(steps_[0],nullptr);
+                steps_[i]->PointerInit(steps_[0].get_mutable(),nullptr);
             }
         }
         ConfigUpdateService::instance()->register_update_listener(this);
@@ -558,14 +559,14 @@ private:
         openlcb::EventRegistry::instance()->register_handler(
            openlcb::EventRegistryEntry(this, start_), 0);
     }
-    openlcb::Node *node_;
-    const SequenceConfig cfg_;
-    bool enabled_;
     openlcb::EventId start_;
     openlcb::EventId stop_;
+    const SequenceConfig cfg_;
+    openlcb::Node *node_;
+    uninitialized<Step> steps_[STEPSCOUNT];
     bool stepRunning_;
     bool stopped_;
-    Step *steps_[STEPSCOUNT];
+    bool enabled_;
 };
         
         

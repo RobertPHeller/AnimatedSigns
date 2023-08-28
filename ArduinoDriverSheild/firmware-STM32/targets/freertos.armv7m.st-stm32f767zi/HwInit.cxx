@@ -41,8 +41,9 @@
 #include "os/OS.hxx"
 #include "Stm32Uart.hxx"
 #include "Stm32Can.hxx"
+#include "Stm32PWM.hxx"
 #include "freertos_drivers/spiffs/stm32f7/Stm32SPIFFS.hxx"
-#include "hardware.hxx"
+#include "Hardware.hxx"
 
 /** override stdin */
 const char *STDIN_DEVICE = "/dev/ser0";

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Apr 3 11:34:45 2023
-#  Last Modified : <230808.2011>
+#  Last Modified : <230828.1434>
 #
 #  Description	
 #
@@ -44,13 +44,29 @@
 
 
 SUBDIRS = \
-	freertos.armv7m.st-stm32f303re
+	freertos.armv7m.st-stm32f303re \
+	freertos.armv7m.st-stm32f767zi
+	
+#\
+#	freertos.armv7m.st-stm32l452re
 	
 include $(OPENMRNPATH)/etc/recurse.mk
 
-flash:	all
+flashf303:	all
 	+$(MAKE) -C freertos.armv7m.st-stm32f303re flash
 	
-gdb:	flash
+gdbf303:	flashf303
 	+$(MAKE) -C freertos.armv7m.st-stm32f303re gdb
 	
+
+flashl452:      all
+	+$(MAKE) -C freertos.armv7m.st-stm32l452re flash
+	
+gdbl452: flashl452
+	+$(MAKE) -C freertos.armv7m.st-stm32l452re gdb
+
+flashf767:      all
+	+$(MAKE) -C freertos.armv7m.st-stm32f767zi flash
+	
+gdbf767: flashf767
+	+$(MAKE) -C freertos.armv7m.st-stm32f767zi gdb

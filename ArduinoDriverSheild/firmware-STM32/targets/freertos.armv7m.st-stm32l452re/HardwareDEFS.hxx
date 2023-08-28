@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Jul 28 14:54:20 2023
-//  Last Modified : <230828.1303>
+//  Last Modified : <230828.1302>
 //
 //  Description	
 //
@@ -45,9 +45,9 @@
 #ifndef __HARDWAREDEFS_HXX
 #define __HARDWAREDEFS_HXX
 
-#define HardwareDEF "Octal PWM Buffer + Nucleo F303 dev board"
+#define HardwareDEF "Octal PWM Buffer + Nucleo L452 dev board"
 
-#define SEQUENCECOUNT 4
+#define SEQUENCECOUNT 8
 
 #define OUTPUTCOUNT 8
 

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Feb 5 21:19:52 2023
-//  Last Modified : <230827.1358>
+//  Last Modified : <230828.1253>
 //
 //  Description	
 //
@@ -46,7 +46,12 @@
 #include "openlcb/ConfigRepresentation.hxx"
 #include "StepConfigGroup.hxx"
 
+#ifdef STM32F303xE
 #define SEQUENCECOUNT 4
+#endif
+#ifdef STM32L432xx
+#define SEQUENCECOUNT 8
+#endif
 
 static const char YesNoMap[] = 
 "<relation><property>0</property><value>No</value></relation>"

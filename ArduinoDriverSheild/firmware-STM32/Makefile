@@ -17,11 +17,17 @@ refman.pdf: doc/latex/refman.pdf
 doc/latex/refman.pdf: 
 	$(MAKE) -c doc pdf
 
-flash:	$(BUILDDIRS)
-	+$(MAKE) -C targets flash
+flashf303:	$(BUILDDIRS)
+	+$(MAKE) -C targets flashf303
 	
-gdb:	$(BUILDDIRS)
-	+$(MAKE) -C targets gdb
+gdbf303:	$(BUILDDIRS)
+	+$(MAKE) -C targets gdbf303
+	
+flashl452:	$(BUILDDIRS)
+	+$(MAKE) -C targets flashl452
+	
+gdbl452:	$(BUILDDIRS)
+	+$(MAKE) -C targets gdbl452
 	
 
                                           

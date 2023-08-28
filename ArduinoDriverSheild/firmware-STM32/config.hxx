@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 29 12:53:21 2023
-//  Last Modified : <230827.1340>
+//  Last Modified : <230828.1302>
 //
 //  Description	
 //
@@ -68,7 +68,7 @@ namespace openlcb
 /// - the Simple Node Ident Info Protocol will return this data
 /// - the ACDI memory space will contain this data.
 extern const SimpleNodeStaticValues SNIP_STATIC_DATA = {
-    4, "Deepwoods Software", "Octal PWM Buffer + Nucleo F303 dev board",
+    4, "Deepwoods Software", HardwareDEF,
     "Rev A", "1.00"};
 
 /// Modify this value every time the EEPROM needs to be cleared on the node

@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Apr 3 11:34:45 2023
-#  Last Modified : <230829.1334>
+#  Last Modified : <230829.1335>
 #
 #  Description	
 #
@@ -56,12 +56,6 @@ flashf303:	all
 gdbf303:	flashf303
 	+$(MAKE) -C freertos.armv7m.st-stm32f303re gdb
 	
-
-flashl452:      all
-	+$(MAKE) -C freertos.armv7m.st-stm32l452re flash
-	
-gdbl452: flashl452
-	+$(MAKE) -C freertos.armv7m.st-stm32l452re gdb
 
 flashf767:      all
 	+$(MAKE) -C freertos.armv7m.st-stm32f767zi flash

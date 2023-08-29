@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Fri Jul 28 14:52:28 2023
-//  Last Modified : <230828.1740>
+//  Last Modified : <230829.0922>
 //
 //  Description	
 //
@@ -53,11 +53,11 @@
 GPIO_PIN(LED_GREEN_RAW, LedPin, A, 5);
 
 // Driver (PWM) pins                     
-GPIO_PIN(D6, GpioOutputSafeHigh, E, 9);   // TIMER_A_PWM1 - TIM1_CH1 #1 CN10  4
-GPIO_PIN(D5, GpioOutputSafeHigh, E, 11);  // TIMER_A_PWM2 - TIM1_CH2 #2 CN10  6
+GPIO_PIN(D9, GpioOutputSafeHigh, D, 15);  // TIMER_B_PWM2 - TIM4_CH4 #1 CN7  18
+GPIO_PIN(D10, GpioOutputSafeHigh, D, 14); // TIMER_B_PWM3 - TIM4_CH3 #2 CN7  16
+GPIO_PIN(D6, GpioOutputSafeHigh, E, 9);   // TIMER_A_PWM1 - TIM1_CH1 #3 CN10  4
+GPIO_PIN(D5, GpioOutputSafeHigh, E, 11);  // TIMER_A_PWM2 - TIM1_CH2 #4 CN10  6
 GPIO_PIN(D3, GpioOutputSafeHigh, E, 13);  // TIMER_A_PWM3 - TIM1_CH3 #3 CN10 10
-GPIO_PIN(D9, GpioOutputSafeHigh, D, 15);  // TIMER_B_PWM2 - TIM4_CH4 #4 CN7  18
-GPIO_PIN(D10, GpioOutputSafeHigh, D, 14); // TIMER_B_PWM3 - TIM4_CH3 #5 CN7  16
 GPIO_PIN(D38, GpioOutputSafeHigh, E, 14); // TIMER_A_PWM4 - TIM1_CH4 #6 CN10 28
 GPIO_PIN(D36, GpioOutputSafeHigh, B, 10); // TIMER_C_PWM2 - TIM2_CH3 #7 CN10 32
 GPIO_PIN(D35, GpioOutputSafeHigh, B, 11); // TIMER_C_PWM3 - TIM2_CH4 #8 CN10 34

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 29 13:08:48 2023
-//  Last Modified : <230827.1328>
+//  Last Modified : <230829.1319>
 //
 //  Description	
 //
@@ -156,9 +156,16 @@ int appl_main(int argc, char *argv[])
 {
     Output::PinLookupInit();
     
-    stack.check_version_and_factory_reset(
-                                          cfg.seg().internal_config(), openlcb::CANONICAL_VERSION, false);
-    
+#ifdef STM32F767xx
+    // Using SPIFFS
+    stack.create_config_file_if_needed(cfg.seg().internal_config(),
+                                       openlcb::CANONICAL_VERSION,
+                                       openlcb::CONFIG_FILE_SIZE);
+#else
+    // Using Stm32EEPROMEmulation
+    stack.check_version_and_factory_reset(cfg.seg().internal_config(), 
+                                          openlcb::CANONICAL_VERSION, false);
+#endif
     
     // The necessary physical ports must be added to the stack.
     //

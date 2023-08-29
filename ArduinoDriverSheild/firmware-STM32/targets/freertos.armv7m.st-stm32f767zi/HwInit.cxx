@@ -68,6 +68,29 @@ static Stm32SPIFFS spiffs0((size_t)&__flash_fs_start,
                            256 /* logical page size */, 16 /* num open */,
                            64 /* cache pages */);
 
+Stm32PWMGroup pwmtimer_1(TIM1, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                         configCPU_CLOCK_HZ * 6 / 1000);
+Stm32PWMGroup pwmtimer_2(TIM2, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                         configCPU_CLOCK_HZ * 6 / 1000);
+
+Stm32PWMGroup pwmtimer_4(TIM4, (configCPU_CLOCK_HZ * 6 / 1000 + 65535) / 65536,
+                         configCPU_CLOCK_HZ * 6 / 1000);
+
+extern PWM* const pwmchannels[];
+/// The order of these channels follows the schematic arrangement of MCU pins
+/// to logical servo ports.
+PWM * const pwmchannels[8] = { //
+    Stm32PWMGroup::get_channel(&pwmtimer_4, 4), // D9
+    Stm32PWMGroup::get_channel(&pwmtimer_4, 3), // D10
+    Stm32PWMGroup::get_channel(&pwmtimer_1, 1), // D6
+    Stm32PWMGroup::get_channel(&pwmtimer_1, 2), // D5
+    Stm32PWMGroup::get_channel(&pwmtimer_1, 3), // D3
+    Stm32PWMGroup::get_channel(&pwmtimer_1, 4), // D38
+    Stm32PWMGroup::get_channel(&pwmtimer_2, 3), // D36
+    Stm32PWMGroup::get_channel(&pwmtimer_2, 4)  // D35
+};
+
+
 extern "C" {
 
 /** Blink LED */
@@ -245,6 +268,9 @@ void hw_preinit(void)
     __HAL_RCC_USART3_CLK_ENABLE();
     __HAL_RCC_CAN1_CLK_ENABLE();
     __HAL_RCC_TIM14_CLK_ENABLE();
+    __HAL_RCC_TIM1_CLK_ENABLE();
+    __HAL_RCC_TIM2_CLK_ENABLE();
+    __HAL_RCC_TIM4_CLK_ENABLE();
 
     /* setup pinmux */
     GPIO_InitTypeDef gpio_init;
@@ -271,6 +297,32 @@ void hw_preinit(void)
     HAL_GPIO_Init(GPIOB, &gpio_init);
 
     GpioInit::hw_init();
+    
+    // Switches over PWM timer pins to timer mode.
+    // PD15 (TIM4_CH4), PD14 (TIM4_CH3), PE9 (TIM1_CH1), PE11 (TIM1_CH2), 
+    // PE13 (TIM1_CH3), PE14 (TIM1_CH4), PB10 (TIM2_CH3), PB11 (TIM2_CH4)
+    gpio_init.Mode = GPIO_MODE_AF_PP;
+    gpio_init.Pull = GPIO_NOPULL;
+    gpio_init.Speed = GPIO_SPEED_FREQ_HIGH;
+    gpio_init.Alternate = GPIO_AF2_TIM4;
+    gpio_init.Pin = GPIO_PIN_15;
+    HAL_GPIO_Init(GPIOD, &gpio_init); // D9 : PD15 : TIM4_CH4
+    gpio_init.Pin = GPIO_PIN_14;
+    HAL_GPIO_Init(GPIOD, &gpio_init); // D10 : PD14 : TIM4_CH3
+    gpio_init.Alternate = GPIO_AF1_TIM1;
+    gpio_init.Pin = GPIO_PIN_9;
+    HAL_GPIO_Init(GPIOE, &gpio_init); // D6 : E9 : TIM1_CH1
+    gpio_init.Pin = GPIO_PIN_11;
+    HAL_GPIO_Init(GPIOE, &gpio_init); // D5 : E11 : TIM1_CH2
+    gpio_init.Pin = GPIO_PIN_13;
+    HAL_GPIO_Init(GPIOE, &gpio_init); // D3 : E13 : TIM1_CH3
+    gpio_init.Pin = GPIO_PIN_14;
+    HAL_GPIO_Init(GPIOE, &gpio_init); // D38 : PE14 : TIM1_CH4
+    gpio_init.Alternate = GPIO_AF1_TIM2;
+    gpio_init.Pin = GPIO_PIN_10;
+    HAL_GPIO_Init(GPIOB, &gpio_init); // D36 : PB10 : TIM2_CH3
+    gpio_init.Pin = GPIO_PIN_11;
+    HAL_GPIO_Init(GPIOB, &gpio_init); // D35 : PB11 : TIM2_CH4
 
     /* Initializes the blinker timer. */
     TIM_HandleTypeDef TimHandle;

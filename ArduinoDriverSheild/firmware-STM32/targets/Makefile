@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Mon Apr 3 11:34:45 2023
-#  Last Modified : <230828.1434>
+#  Last Modified : <230829.1334>
 #
 #  Description	
 #
@@ -47,8 +47,6 @@ SUBDIRS = \
 	freertos.armv7m.st-stm32f303re \
 	freertos.armv7m.st-stm32f767zi
 	
-#\
-#	freertos.armv7m.st-stm32l452re
 	
 include $(OPENMRNPATH)/etc/recurse.mk
 

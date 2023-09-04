@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 3 15:28:08 2023
-#  Last Modified : <230216.1114>
+#  Last Modified : <230904.1547>
 #
 #  Description	
 #
@@ -70,11 +70,13 @@ class ArrowFace(object):
         halfheadthickness = headthickness / 2.0
         #print("*** ArrowFace() halfheadthickness is ",halfheadthickness,file=sys.stderr)
         halfthichness = thickness/2.0
+        self.__ht = halfthichness
         #print("*** ArrowFace() halfthichness is ",halfthichness,file=sys.stderr)
         dx=tipx-tailx
         dy=tipy-taily
         #print("*** ArrowFace() dx,dy are ",dx,dy,file=sys.stderr)
         arrowlength= sqrt((dx*dx) + (dy*dy))
+        self.__al = arrowlength
         #print("*** ArrowFace() arrowlength is ",arrowlength,file=sys.stderr)
         angleRads = atan2(dy,dx)
         angle = (angleRads/pi)*180
@@ -94,21 +96,51 @@ class ArrowFace(object):
         self.face=self.face.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),angle)
         self.face=self.face.translate(Base.Vector(tailx,taily,0))
         self.face=self.face.translate(origin)
+    def printedPath(self,originOffset=Base.Vector(0,0,0),reverse=False):
+        if reverse:
+            rface = self.face.rotate(Base.Vector(0+self.__al,0+self.__ht*2,0),Base.Vector(0,0,1),180)
+            edges = rface.Edges
+        else:
+            edges = self.face.Edges
+        p = None
+        for e in edges:
+            verts = e.Vertexes
+            for v in verts:
+                point = originOffset.add(Base.Vector(v.X,v.Y,0))
+                if p==None:
+                    p = path.path(path.moveto(point.x,point.y))
+                else:
+                    p.append(path.lineto(point.x,point.y))
+        p.append(path.closepath())
+        return p    
+        
 
 class WholeSignPath(object):
-    _wholeSignPoly = [(5.715,5.08,0),(5.715,29.21,0),(10.16,29.21,0),(10.16,76.2,0),\
+    __wholeSignPoly = [(5.715,5.08,0),(5.715,29.21,0),(10.16,29.21,0),(10.16,76.2,0),\
                       (31.75,76.2,0),(31.75,0,0),(10.16,0,0),(10.16,5.08,0),\
                       (5.715,5.08,0)]
+    __printedSideRect = [(10.16,0),(31.75,0),(31.75,76.2),(10.16,76.2)]
     def __init__(self,origin):
         if not isinstance(origin,Base.Vector):
             raise RuntimeError("origin is not a Vector!")
         self.origin=origin
         polypoints = list()
-        for tup in self._wholeSignPoly:
+        for tup in self.__wholeSignPoly:
             x,y,z = tup
             polypoints.append(origin.add(Base.Vector(x,y,z)))
         self.face=Part.Face(Part.Wire(Part.makePolygon(polypoints)))
-        
+    def printedPath(self,originOffset=Base.Vector(0,0,0)):
+        p=None
+        for tup in self.__printedSideRect:
+            x,y = tup
+            point = self.origin.add(originOffset.add(Base.Vector(x,y,0)))
+            if p==None:
+                p = path.path(path.moveto(point.x,point.y))
+            else:
+                p.append(path.lineto(point.x,point.y))
+        p.append(path.closepath())
+        return p
+
 class SignPCB(object):
     _pcbPoly = [(0,5.08,0),(0,29.21,0),(10.16,29.21,0),(10.16,76.2,0),\
                       (31.75,76.2,0),(31.75,0,0),(10.16,0,0),(10.16,5.08,0),\
@@ -132,7 +164,13 @@ class SignPCB(object):
         obj.Shape=self.board
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([0.0,1.0,0.0])
-        
+
+import os
+import sys
+sys.path.append(os.path.dirname(__file__))
+
+from pyx import *
+
 class SignBothSides(object):
     def __init__(self,name,origin):
         self.name=name
@@ -140,14 +178,14 @@ class SignBothSides(object):
             raise RuntimeError("origin is not a Vector!")
         self.origin=origin
         self.board = SignPCB(name+"_pcb",origin)
-        signcaseface = WholeSignPath(origin.add(Base.Vector(0,0,1.5)))
-        self.caseL = signcaseface.face.extrude(Base.Vector(0,0,1.1))
+        self.__signcaseface = WholeSignPath(origin.add(Base.Vector(0,0,1.5)))
+        self.caseL = self.__signcaseface.face.extrude(Base.Vector(0,0,1.1))
         self.caseL = self.caseL.cut(Part.makePlane(3.175,12.7,origin.add(Base.Vector(5.715,10.795,1.5))).extrude(Base.Vector(0,0,.5)))
         signcaseface = WholeSignPath(origin.add(Base.Vector(0,0,0)))
         self.caseR = signcaseface.face.extrude(Base.Vector(0,0,-1.1))
         self.caseR = self.caseR.cut(Part.makePlane(3.175,12.7,origin.add(Base.Vector(5.715,10.795,0))).extrude(Base.Vector(0,0,-.5)))
-        arrowface = ArrowFace(origin.add(Base.Vector(0,0,2.6)))        
-        self.arrowL = arrowface.face.extrude(Base.Vector(0,0,.1))
+        self.__arrowface = ArrowFace(origin.add(Base.Vector(0,0,2.6)))        
+        self.arrowL = self.__arrowface.face.extrude(Base.Vector(0,0,.1))
         arrowcut = ArrowFace(origin.add(Base.Vector(0,0,1.5))).face.extrude(Base.Vector(0,0,1.1))
         self.caseL = self.caseL.cut(arrowcut)
         arrowface = ArrowFace(origin.add(Base.Vector(0,0,-1.1)))
@@ -370,10 +408,20 @@ class SignBothSides(object):
         obj.Label=self.name+"_clubBR"
         obj.ViewObject.ShapeColor=tuple([1.0,1.0,1.0])
         self.board.show()
+    def SignFace(self,filename='8BallSign.ps'):
+        c = canvas.canvas()
+        unit.set(defaultunit='mm')
+        c.fill(self.__signcaseface.printedPath(Base.Vector(25.4,25.4,0)),[color.gray.black])
+        c.fill(self.__arrowface.printedPath(Base.Vector(25.4,25.4,0)),[color.rgb(1.0,1.0,0)])
+        c.fill(self.__signcaseface.printedPath(Base.Vector(76.2,25.4,0)),[color.gray.black])
+        c.fill(self.__arrowface.printedPath(Base.Vector(76.2,25.4,0),True),[color.rgb(1.0,1.0,0)])
+        c.writePSfile(filename)        
+        
 
 if __name__ == '__main__':
     App.ActiveDocument=App.newDocument("Temp")
     doc = App.activeDocument()
     sign = SignBothSides("signBothSides",Base.Vector(0,0,0))
     sign.show()
+    sign.SignFace()
     Gui.SendMsgToActiveView("ViewFit")

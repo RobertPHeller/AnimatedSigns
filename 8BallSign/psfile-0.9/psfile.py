@@ -1,4 +1,4 @@
-# psfile.py - generate encapsulated PostScript files
+L# psfile.py - generate encapsulated PostScript files
 #
 # Copyright (C) 2009  Jochen Voss <voss@seehuhn.de>
 #
@@ -60,7 +60,7 @@ class PSBase(object):
 
         self.definitions = []
         self.dict_space = 0     # extra space in the dictionary
-        self.body = StringIO.StringIO()
+        self.body = StringIO()
 
         self.closed = False
 

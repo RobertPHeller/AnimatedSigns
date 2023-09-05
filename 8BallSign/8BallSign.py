@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Fri Feb 3 15:28:08 2023
-#  Last Modified : <230905.1102>
+#  Last Modified : <230905.1303>
 #
 #  Description	
 #
@@ -540,7 +540,9 @@ class SignBothSides(object):
             c.fill(self.__printedPathText(cf,Base.Vector(76.2,25.4,0),True),[color.rgb(1.0,1.0,1.0)])
         #
         c.writePSfile(filename)        
-        
+    def ExportCaseSTL(self,filename="8BallSignCase.stl"):
+        self.caseR.exportStl("R_"+filename)
+        self.caseL.rotate(Base.Vector(0,0,0),Base.Vector(0,1,0),180).exportStl("L_"+filename)
 
 if __name__ == '__main__':
     App.ActiveDocument=App.newDocument("Temp")
@@ -548,4 +550,5 @@ if __name__ == '__main__':
     sign = SignBothSides("signBothSides",Base.Vector(0,0,0))
     sign.show()
     sign.SignFace()
+    sign.ExportCaseSTL()
     Gui.SendMsgToActiveView("ViewFit")

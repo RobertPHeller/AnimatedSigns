@@ -23,11 +23,12 @@ flashf303:	$(BUILDDIRS)
 gdbf303:	$(BUILDDIRS)
 	+$(MAKE) -C targets gdbf303
 	
-flashl452:	$(BUILDDIRS)
-	+$(MAKE) -C targets flashl452
+flashf767:	$(BUILDDIRS)
+	+$(MAKE) -C targets flashf767
 	
-gdbl452:	$(BUILDDIRS)
-	+$(MAKE) -C targets gdbl452
+gdbf767:	$(BUILDDIRS)
+	+$(MAKE) -C targets gdbf767
+	
 	
 
                                           

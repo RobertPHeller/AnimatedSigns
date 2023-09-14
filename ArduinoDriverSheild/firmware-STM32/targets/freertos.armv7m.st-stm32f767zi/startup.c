@@ -339,6 +339,7 @@ extern unsigned long _ebss;
 /** This hardware initialization code will be called before C++ global objects
  * are initialized. */
 extern void hw_preinit(void);
+extern void hw_postinit(void);
 
 extern void hw_set_to_safe(void);
 
@@ -380,7 +381,7 @@ void reset_handler(void)
 
     /* call static constructors */
     __libc_init_array();
-
+    hw_postinit();
     /* execute main */
     char *argv[] = {0};
     main(0, argv);

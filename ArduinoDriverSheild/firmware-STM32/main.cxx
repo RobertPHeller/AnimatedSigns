@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 29 13:08:48 2023
-//  Last Modified : <230829.1319>
+//  Last Modified : <230914.1755>
 //
 //  Description	
 //
@@ -96,7 +96,11 @@ openlcb::ConfigDef cfg(0);
 // Defines weak constants used by the stack to tell it which device contains
 // the volatile configuration information. This device name appears in
 // HwInit.cxx that creates the device drivers.
+#ifdef STM32F767xx
+extern const char *const openlcb::CONFIG_FILENAME = "/ffs/eeprom";
+#else
 extern const char *const openlcb::CONFIG_FILENAME = "/dev/eeprom";
+#endif
 // The size of the memory space to export over the above device. We verify that
 // the available eeprom is not too full (8192 max) to avoid quick wear-out
 // of the flash. Recommended to have at least 10% spare.

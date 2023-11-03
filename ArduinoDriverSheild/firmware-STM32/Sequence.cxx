@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 15:24:56 2023
-//  Last Modified : <230729.1328>
+//  Last Modified : <231103.1302>
 //
 //  Description	
 //
@@ -60,47 +60,20 @@ static const char rcsid[] = "@(#) : $Id$";
 #include <freertos_drivers/st/Stm32PWM.hxx>
 #include "Sequence.hxx"
 
-void Step::StartStep()
+void Sequence::Step::StartStep()
 {
+    if (running_) return;
     for (int i=0; i < OUTPUTCOUNT; i++)
     {
         outputs_[i]->StartOutput();
     }
+    bn_.reset(this);
     SendEventReport(&write_helpers[0],start_);
     started_ = true;
     parent_->StepStarted();
     ended_ = false;
-    StartDelay();
+    start_flow(STATE(entry));
 }
 
-long long Step::timeout()
-{
-    running_ = false;
-    SendEventReport(&write_helpers[1],end_);
-    started_ = false;
-    ended_ = true;
-    parent_->StepEnded();
-    switch (nextMode_)
-    {
-    case Last: 
-        parent_->LastStep();
-        break;
-    case Next: 
-        if (next_ != nullptr) 
-        {
-            next_->StartStep(); 
-        }
-        else
-        {
-            parent_->LastStep();
-        }
-        break;
-    case First: 
-        if (parent_->StopP()) break;
-        first_->StartStep(); 
-        break;
-    }
-    return NONE;
-}
 
 PWM* Output::pinlookup_[OUTPUTCOUNT+1];

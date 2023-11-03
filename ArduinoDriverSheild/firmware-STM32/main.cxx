@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sat Jul 29 13:08:48 2023
-//  Last Modified : <230914.1755>
+//  Last Modified : <231103.1249>
 //
 //  Description	
 //
@@ -131,23 +131,23 @@ public:
 } factory_reset_helper;
 
 Sequence sequence1(stack.node(),cfg.seg().sequences().entry<0>(),
-                   stack.executor()->active_timers());
+                   stack.service());
 Sequence sequence2(stack.node(),cfg.seg().sequences().entry<1>(),
-                  stack.executor()->active_timers());
+                  stack.service());
 Sequence sequence3(stack.node(),cfg.seg().sequences().entry<2>(),
-                   stack.executor()->active_timers());
+                   stack.service());
 Sequence sequence4(stack.node(),cfg.seg().sequences().entry<3>(),
-                   stack.executor()->active_timers());
+                   stack.service());
 #if SEQUENCECOUNT > 4
 Sequence sequence5(stack.node(),cfg.seg().sequences().entry<4>(),
-                   stack.executor()->active_timers());
+                   stack.service());
 Sequence sequence6(stack.node(),cfg.seg().sequences().entry<5>(),
-                    stack.executor()->active_timers());
+                    stack.service());
 #if SEQUENCECOUNT > 6
 Sequence sequence7(stack.node(),cfg.seg().sequences().entry<6>(),
-                   stack.executor()->active_timers());
+                   stack.service());
 Sequence sequence8(stack.node(),cfg.seg().sequences().entry<7>(),
-                   stack.executor()->active_timers());
+                   stack.service());
 #endif
 #endif
 

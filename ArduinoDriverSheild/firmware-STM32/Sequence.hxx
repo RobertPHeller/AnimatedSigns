@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231103.1302>
+//  Last Modified : <231104.1220>
 //
 //  Description	
 //
@@ -251,31 +251,23 @@ private:
 class Step;
 
 class Sequence : public ConfigUpdateListener, 
-                 public openlcb::SimpleEventHandler 
+                 public StateFlowBase, public openlcb::SimpleEventHandler 
 {
 public:
     Sequence(openlcb::Node *node, const SequenceConfig &cfg, Service *service)
-                : cfg_(cfg)
+                : StateFlowBase(service)
+          , timer_(this)
+          , cfg_(cfg)
           , node_(node)
     {
         enabled_ = false;
         start_ = 0ULL;
+        stop_ = 0ULL; 
         stepRunning_ = false;
         stopped_ = true;
         for (int i = 0; i < STEPSCOUNT; i++)
         {
-            steps_[i].emplace(node_,cfg_.steps().entry(i),service,this);
-        }
-        for (int i = 0; i < STEPSCOUNT; i++)
-        {
-            if ((i+1)<STEPSCOUNT)
-            {
-                steps_[i]->PointerInit(steps_[0].get_mutable(),steps_[i+1].get_mutable());
-            }
-            else
-            {
-                steps_[i]->PointerInit(steps_[0].get_mutable(),nullptr);
-            }
+            steps_[i].emplace(node_,cfg_.steps().entry(i),service);
         }
         ConfigUpdateService::instance()->register_update_listener(this);
     }
@@ -337,57 +329,97 @@ public:
             if (stepRunning_) return;
             if (!enabled_) return;
             stopped_ = false;
-            steps_[0]->StartStep();
+            start_flow(STATE(entry));
         }
-    }
-    void StepStarted()
-    {
-        stepRunning_ = true;
-    }
-    void StepEnded()
-    {
-        stepRunning_ = false;
     }
     bool StopP()
     {
         return stopped_;
     }
-    void LastStep()
+private:
+    Action entry()
+    {
+        istate_ = 0;
+        return call_immediately(STATE(startStep));
+    }
+    Action startStep()
+    {
+        bn_.reset(this);
+        SendEventReport(&write_helpers[0],steps_[istate_]->StartEventId());
+        stepRunning_ = true;
+        return sleep_and_call(&timer_,steps_[istate_]->StartStep(),STATE(endStep));
+    }
+    Action endStep()
+    {
+        steps_[istate_]->EndStep();
+        SendEventReport(&write_helpers[1],steps_[istate_]->EndEventId());
+        stepRunning_ = false;
+        bn_.maybe_done();
+        return wait_and_call(STATE(next));
+    }
+    Action next()
+    {
+        if (stopped_)
+        {
+            call_immediately(STATE(finish));
+        }
+        Step::NextMode_t next = steps_[istate_]->NextMode();
+        switch (next)
+        {
+        case Step::NextMode_t::Last:  // This is the last step.
+            return call_immediately(STATE(finish));
+        case Step::NextMode_t::Next:  // Goto the next step in the list
+            istate_++;
+            if (istate_ < STEPSCOUNT)
+            {
+                return call_immediately(STATE(startStep));
+            } 
+            else
+            {
+                return call_immediately(STATE(finish));
+            }
+        case Step::NextMode_t::First: // Goto the first step (loop)
+            istate_ = 0;
+            return call_immediately(STATE(startStep));
+        }
+        // Should not get here.  This is only here to make the compiler happy.
+        return exit();
+    }
+    Action finish()
     {
         stopped_ = true;
+        return exit();
     }
-private:
+
+    void SendEventReport(openlcb::WriteHelper *helper,openlcb::EventId event)
+    {
+        helper->WriteAsync(node_,
+                           openlcb::Defs::MTI_EVENT_REPORT,
+                           openlcb::WriteHelper::global(),
+                           openlcb::eventid_to_buffer(event),
+                           bn_.new_child());
+    }
     class Step : public ConfigUpdateListener, 
-          public StateFlowBase, public openlcb::SimpleEventHandler 
+          public openlcb::SimpleEventHandler 
     {
     public:
-        enum NextMode : uint8_t {Last, Next, First};
-        Step(openlcb::Node *node, const StepConfig &cfg, Service *service, 
-             Sequence *parent)
-                    : StateFlowBase(service)
-              , timer_(this)
-              , cfg_(cfg)
+        enum NextMode_t : uint8_t {Last, Next, First};
+        Step(openlcb::Node *node, const StepConfig &cfg, Service *service)
+                    : cfg_(cfg)
               , node_(node)
-              , parent_(parent)
         {
-            running_ = false;
             nextMode_ = Last;
             time_ = 0ULL;
             start_ = 0ULL;
             end_ = 0ULL;
             started_ = false;
-            ended_ = false;
+            ended_ = true;
             for (int i = 0; i < OUTPUTCOUNT; i++)
             {
                 outputs_[i].emplace(cfg_.outputs().entry(i), 
-                                    this->service()->executor()->active_timers());
+                                    service->executor()->active_timers());
             }
             ConfigUpdateService::instance()->register_update_listener(this);
-        }
-        void PointerInit(Step *first, Step *next)
-        {
-            first_ = first;
-            next_ =next;
         }
         
         virtual UpdateAction apply_configuration(int fd,
@@ -396,7 +428,7 @@ private:
         {
             AutoNotify n(done);
             time_ = cfg_.time().read(fd);
-            nextMode_ = (NextMode) cfg_.next().read(fd);
+            nextMode_ = (NextMode_t) cfg_.next().read(fd);
             openlcb::EventId cfg_start = cfg_.start().read(fd);
             openlcb::EventId cfg_end = cfg_.end().read(fd);
             if (cfg_start != start_ ||
@@ -436,7 +468,33 @@ private:
             SendProducerIdentified(event,done);
             done->maybe_done();
         }
-        void StartStep();
+        long long StartStep()
+        {
+            for (int i=0; i < OUTPUTCOUNT; i++)
+            {
+                outputs_[i]->StartOutput();
+            }
+            started_ = true;
+            ended_ = false;
+            return time_ * 1000000ULL;
+        }
+        void EndStep()
+        {
+            started_ = false;
+            ended_ = true;
+        }
+        openlcb::EventId StartEventId() const 
+        {
+            return start_;
+        }
+        openlcb::EventId EndEventId() const 
+        {
+            return end_;
+        }
+        NextMode_t NextMode() const
+        {
+            return nextMode_;
+        }
     private:
         void register_handler()
         {
@@ -490,64 +548,15 @@ private:
                                                        openlcb::eventid_to_buffer(event->event),
                                                        done->new_child());
         }
-        Action entry()
-        {
-            return sleep_and_call(&timer_,time_ * 1000000ULL,STATE(finish));
-        }
-        Action finish()
-        {
-            running_ = false;
-            SendEventReport(&write_helpers[1],end_);
-            started_ = false;
-            ended_ = true;
-            parent_->StepEnded();
-            switch (nextMode_)
-            {
-            case Last: 
-                parent_->LastStep();
-                break;
-            case Next: 
-                if (next_ != nullptr) 
-                {
-                    next_->StartStep(); 
-                }
-                else
-                {
-                    parent_->LastStep();
-                }
-                break;
-            case First: 
-                if (parent_->StopP()) break;
-                first_->StartStep(); 
-                break;
-            }
-            return exit();
-        }
-        void SendEventReport(openlcb::WriteHelper *helper,openlcb::EventId event)
-        {
-            helper->WriteAsync(node_,
-                               openlcb::Defs::MTI_EVENT_REPORT,
-                               openlcb::WriteHelper::global(),
-                               openlcb::eventid_to_buffer(event),
-                               bn_.new_child());
-            bn_.maybe_done();
-        }
-        StateFlowTimer timer_;
-        BarrierNotifiable bn_;
-        openlcb::WriteHelper write_helpers[2];
         const StepConfig cfg_;
         openlcb::EventId start_;
         openlcb::EventId end_;
-        openlcb::Node *node_;
-        Sequence *parent_;
-        Step *first_;
-        Step *next_;
-        uninitialized<Output> outputs_[OUTPUTCOUNT];
-        unsigned long time_;
-        NextMode nextMode_;
+        long long time_;
         bool started_;
         bool ended_;
-        bool running_;
+        openlcb::Node *node_;
+        uninitialized<Output> outputs_[OUTPUTCOUNT];
+        NextMode_t nextMode_;
     };
     
     void SendAllConsumersIdentified(openlcb::EventReport *event,BarrierNotifiable *done)
@@ -583,6 +592,9 @@ private:
         openlcb::EventRegistry::instance()->register_handler(
            openlcb::EventRegistryEntry(this, start_), 0);
     }
+    StateFlowTimer timer_;
+    BarrierNotifiable bn_;
+    openlcb::WriteHelper write_helpers[2];
     openlcb::EventId start_;
     openlcb::EventId stop_;
     const SequenceConfig cfg_;
@@ -591,6 +603,7 @@ private:
     bool stepRunning_;
     bool stopped_;
     bool enabled_;
+    uint8_t istate_;
 };
         
         

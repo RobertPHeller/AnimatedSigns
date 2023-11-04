@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 15:24:56 2023
-//  Last Modified : <231103.1302>
+//  Last Modified : <231104.1043>
 //
 //  Description	
 //
@@ -59,21 +59,5 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "SequenceConfigGroup.hxx"
 #include <freertos_drivers/st/Stm32PWM.hxx>
 #include "Sequence.hxx"
-
-void Sequence::Step::StartStep()
-{
-    if (running_) return;
-    for (int i=0; i < OUTPUTCOUNT; i++)
-    {
-        outputs_[i]->StartOutput();
-    }
-    bn_.reset(this);
-    SendEventReport(&write_helpers[0],start_);
-    started_ = true;
-    parent_->StepStarted();
-    ended_ = false;
-    start_flow(STATE(entry));
-}
-
 
 PWM* Output::pinlookup_[OUTPUTCOUNT+1];

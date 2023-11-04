@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231104.1338>
+//  Last Modified : <231104.1339>
 //
 //  Description	
 //
@@ -513,7 +513,7 @@ private:
         void SendAllProducersIdentified(openlcb::EventReport *event,BarrierNotifiable *done)
         {
             openlcb::Defs::MTI mti_started = openlcb::Defs::MTI_PRODUCER_IDENTIFIED_INVALID,
-                  mti_ended = openlcb::Defs::MTI_PRODUCER_IDENTIF`IED_INVALID;
+                  mti_ended = openlcb::Defs::MTI_PRODUCER_IDENTIFIED_INVALID;
             if (started_) 
             {
                 mti_started = openlcb::Defs::MTI_PRODUCER_IDENTIFIED_VALID;

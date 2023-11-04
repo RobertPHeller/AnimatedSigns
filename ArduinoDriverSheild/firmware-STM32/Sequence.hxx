@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231104.1220>
+//  Last Modified : <231104.1255>
 //
 //  Description	
 //
@@ -264,6 +264,7 @@ public:
         start_ = 0ULL;
         stop_ = 0ULL; 
         stepRunning_ = false;
+        running_ = false;
         stopped_ = true;
         for (int i = 0; i < STEPSCOUNT; i++)
         {
@@ -326,7 +327,7 @@ public:
         }
         else
         {
-            if (stepRunning_) return;
+            if (running_) return;
             if (!enabled_) return;
             stopped_ = false;
             start_flow(STATE(entry));
@@ -339,6 +340,7 @@ public:
 private:
     Action entry()
     {
+        running_ = true;
         istate_ = 0;
         return call_immediately(STATE(startStep));
     }
@@ -388,6 +390,7 @@ private:
     Action finish()
     {
         stopped_ = true;
+        running_ = false;
         return exit();
     }
 
@@ -543,7 +546,7 @@ private:
                 if (ended_) mti = openlcb::Defs::MTI_PRODUCER_IDENTIFIED_VALID;
                 else mti = openlcb::Defs::MTI_PRODUCER_IDENTIFIED_INVALID;
             }
-            event->event_write_helper<1>()->WriteAsync(node_, mti,
+            event->event_write_helper<3>()->WriteAsync(node_, mti,
                                                        openlcb::WriteHelper::global(),
                                                        openlcb::eventid_to_buffer(event->event),
                                                        done->new_child());
@@ -561,23 +564,45 @@ private:
     
     void SendAllConsumersIdentified(openlcb::EventReport *event,BarrierNotifiable *done)
     {
-        openlcb::Defs::MTI mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_INVALID;
-        if (stepRunning_) mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_VALID;
-        event->event_write_helper<1>()->WriteAsync(node_, mti,
+        openlcb::Defs::MTI startmti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_INVALID;
+        openlcb::Defs::MTI stopmti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_VALID;
+        if (running_) 
+        {
+            startmti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_VALID;
+            stopmti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_INVALID;
+        }
+        event->event_write_helper<1>()->WriteAsync(node_, startmti,
                                                    openlcb::WriteHelper::global(),
                                                    openlcb::eventid_to_buffer(start_),
                                                    done->new_child());
+        
+        event->event_write_helper<2>()->WriteAsync(node_, stopmti,
+                                                   openlcb::WriteHelper::global(),
+                                                   openlcb::eventid_to_buffer(stop_),
+                                                   done->new_child());
+        
     }
     void SendConsumerIdentified(openlcb::EventReport *event,BarrierNotifiable *done)
     {
         openlcb::Defs::MTI mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_UNKNOWN;
         if (event->event == start_)
         {
-            if (stepRunning_) 
+            if (running_) 
                 mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_VALID;
             else
                 mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_INVALID;
-            event->event_write_helper<2>()->WriteAsync(node_, mti, 
+            event->event_write_helper<3>()->WriteAsync(node_, mti, 
+                                                       openlcb::WriteHelper::global(),
+                                                       openlcb::eventid_to_buffer(event->event),
+                                                       done->new_child());
+        }
+        if (event->event == stop_)
+        {
+            if (!running_)
+                mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_VALID;
+            else
+                mti = openlcb::Defs::MTI_CONSUMER_IDENTIFIED_INVALID;
+            event->event_write_helper<4>()->WriteAsync(node_, mti,
                                                        openlcb::WriteHelper::global(),
                                                        openlcb::eventid_to_buffer(event->event),
                                                        done->new_child());
@@ -591,6 +616,8 @@ private:
     {
         openlcb::EventRegistry::instance()->register_handler(
            openlcb::EventRegistryEntry(this, start_), 0);
+        openlcb::EventRegistry::instance()->register_handler(
+           openlcb::EventRegistryEntry(this, stop_), 0);
     }
     StateFlowTimer timer_;
     BarrierNotifiable bn_;
@@ -602,6 +629,7 @@ private:
     uninitialized<Step> steps_[STEPSCOUNT];
     bool stepRunning_;
     bool stopped_;
+    bool running_;
     bool enabled_;
     uint8_t istate_;
 };

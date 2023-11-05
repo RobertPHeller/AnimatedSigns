@@ -1,0 +1,12 @@
+dependencies:
+  OpenMRNIDF:
+    version: idf-v5
+    git: https://github.com/atanisoft/OpenMRNIDF.git
+  NVSManager:
+    path: /home/heller/ESP32-LCC/CommonComponents/NVSManager
+  FS:
+    path: /home/heller/ESP32-LCC/CommonComponents/FS
+  HealthMonitor:
+    path: /home/heller/ESP32-LCC/CommonComponents/HealthMonitor
+  RebootHelpers:
+    path: /home/heller/ESP32-LCC/CommonComponents/RebootHelpers

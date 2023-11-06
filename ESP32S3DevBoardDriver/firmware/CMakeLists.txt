@@ -13,8 +13,8 @@ if (IDF_VERSION_MAJOR EQUAL 4 AND IDF_VERSION_MINOR LESS 2)
 endif()
 
 
-set(SUPPORTED_TARGETS esp32 esp32s3)
-project(Esp32OctalBuffer)
+set(SUPPORTED_TARGETS esp32s3)
+project(Esp32S3DevKitOctalBuffer)
 
 ###############################################################################
 # Switch from GNU++11 to GNU++14
@@ -43,14 +43,6 @@ idf_build_set_property(COMPILE_DEFINITIONS "-D_GLIBCXX_USE_C99" APPEND)
 # idf_build_set_property(COMPILE_DEFINITIONS "-Wno-unused-but-set-variable" APPEND)
 
 ###############################################################################
-# Verify submodules were checked out correctly
-###############################################################################
-
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../OpenMRNIDF/CMakeLists.txt)
-    message(FATAL_ERROR  "${CMAKE_CURRENT_SOURCE_DIR}/../OpenMRNIDF does not appear to have been checked out, please run 'git submodule  update --init' from ${CMAKE_CURRENT_SOURCE_DIR}/..")
-endif()
-
-###############################################################################
 # Configuration validations
 ###############################################################################
 
@@ -58,11 +50,11 @@ if (NOT CONFIG_FREERTOS_HZ EQUAL 1000)
     message(FATAL_ERROR "FreeRTOS tick rate (hz) is required to be 1000.")
 endif()
 
-if (NOT CONFIG_PARTITION_TABLE_FILENAME STREQUAL "esp32octalbuffer-partitions.csv")
+if (NOT CONFIG_PARTITION_TABLE_FILENAME STREQUAL "esp32s3dkoctalbuffer-partitions.csv")
     message(FATAL_ERROR "The custom partition table option is not enabled in menuconfig and is required for compilation.")
 endif()
 
-if (NOT CONFIG_PARTITION_TABLE_CUSTOM_FILENAME STREQUAL "esp32octalbuffer-partitions.csv")
+if (NOT CONFIG_PARTITION_TABLE_CUSTOM_FILENAME STREQUAL "esp32s3dkoctalbuffer-partitions.csv")
     message(FATAL_ERROR "The custom partition table option is not enabled in menuconfig and is required for compilation.")
 endif()
 

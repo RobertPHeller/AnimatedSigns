@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Jun 23 12:17:40 2022
-//  Last Modified : <231107.1132>
+//  Last Modified : <231107.1345>
 //
 //  Description	
 //
@@ -269,9 +269,13 @@ void app_main()
     
     LOG(INFO,"[MAIN] Just before Esp32Ledc: PWMPINS is %d long, %d channels available",
         p.size(),LEDC_CHANNEL_MAX-LEDC_CHANNEL_0);
-    openmrn_arduino::Esp32Ledc ledc(PWMPINS,LEDC_CHANNEL_0, LEDC_TIMER_13_BIT, 10000);
+    openmrn_arduino::Esp32Ledc ledc(PWMPINS,LEDC_CHANNEL_0,LEDC_TIMER_12_BIT,
+                                    10000);
     ledc.hw_init();
     Output::PinLookupInit(ledc);
+    PWM *ch1 = ledc.get_channel(0);
+    ch1->set_period(ch1->get_period_max());
+    LOG(INFO,"[MAIN] Ch1 Period: %lu, (Max period: %lu)",ch1->get_period(),ch1->get_period_max());
     Sequence *sequences[SEQUENCECOUNT];
     for (int i=0; i < SEQUENCECOUNT; i++)
     {

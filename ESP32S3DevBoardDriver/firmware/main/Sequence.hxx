@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231106.2230>
+//  Last Modified : <231107.1300>
 //
 //  Description	
 //
@@ -145,7 +145,9 @@ public:
             }
             break;
         }
-        p->set_duty((uint32_t)(BRIGHNESSHUNDRETHSPERCENT(currentbrightness_)*p->get_period()));
+        uint32_t duty = (uint32_t)(BRIGHNESSHUNDRETHSPERCENT(currentbrightness_)*p->get_period());
+        LOG(INFO,"[Output::StartOutput] duty = %lu",duty);
+        p->set_duty(duty);
     }
     static void PinLookupInit(openmrn_arduino::Esp32Ledc &ledc)
     {

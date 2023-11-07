@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Jun 23 12:17:40 2022
-//  Last Modified : <231105.1522>
+//  Last Modified : <231106.2018>
 //
 //  Description	
 //
@@ -54,7 +54,7 @@ static const char rcsid[] = "@(#) : $Id$";
 #include "BootPauseHelper.hxx"
 
 #include <algorithm>
-#include <driver/i2c.h>
+#include <driver/ledc.h>
 #include <driver/uart.h>
 #include <esp_err.h>
 #include <esp_log.h>
@@ -265,6 +265,10 @@ void app_main()
     healthmonitor::HealthMonitor health_mon(stack.service());
     LOG(INFO, "[MAIN] HealthMonitor allocated");
     
+    std::vector<uint8_t> p(PWMPINS);
+    
+    LOG(INFO,"[MAIN] Just before Esp32Ledc: PWMPINS is %d long, %d channels available",
+        p.size(),LEDC_CHANNEL_MAX-LEDC_CHANNEL_0);
     openmrn_arduino::Esp32Ledc ledc(PWMPINS);
     ledc.hw_init();
     Output::PinLookupInit(ledc);

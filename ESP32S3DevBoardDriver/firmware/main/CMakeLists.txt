@@ -14,7 +14,7 @@ set(deps
     json
 )
 
-idf_component_register(SRCS esp32s3dkoctalbuffer.cpp Sequence.cpp
+idf_component_register(SRCS esp32s3dkoctalbuffer.cpp Sequence.cpp 
                        REQUIRES "${deps}")
 
 # export the project version as a define for the SNIP data, note it must be

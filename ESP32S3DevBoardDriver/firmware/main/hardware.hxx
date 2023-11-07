@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jan 15 16:13:22 2023
-//  Last Modified : <230206.0933>
+//  Last Modified : <231106.2051>
 //
 //  Description	
 //
@@ -51,7 +51,7 @@
 #if defined(CONFIG_IDF_TARGET_ESP32)
 #define PWMPINS {12,13,14,15,16,17,18,19}
 #elif defined(CONFIG_IDF_TARGET_ESP32S3)
-#define PWMPINS {11,12,13,14,15,16,17,18}
+#define PWMPINS {11,12,13,14,15,16,17/*,18*/}
 #endif
 
 /// GPIO Pin connected to the TWAI (CAN) Transceiver RX pin.

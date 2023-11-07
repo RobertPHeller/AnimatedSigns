@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231105.1514>
+//  Last Modified : <231106.2230>
 //
 //  Description	
 //
@@ -111,6 +111,7 @@ public:
         if (outputid_ == Unused) return;
         PWM * p = Pin();
         if (p == nullptr) return;
+        LOG(INFO,"[Output::StartOutput] p = %p, mode_ = %d",p,mode_);
         switch (mode_)
         {
         case On:
@@ -473,6 +474,7 @@ private:
         }
         long long StartStep()
         {
+            LOG(INFO,"[Sequence::Step::StartStep]");
             for (int i=0; i < OUTPUTCOUNT; i++)
             {
                 outputs_[i]->StartOutput();
@@ -483,6 +485,7 @@ private:
         }
         void EndStep()
         {
+            LOG(INFO,"[Sequence::Step::EndStep]");
             started_ = false;
             ended_ = true;
         }

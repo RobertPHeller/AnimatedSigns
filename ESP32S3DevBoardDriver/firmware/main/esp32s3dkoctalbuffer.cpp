@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Thu Jun 23 12:17:40 2022
-//  Last Modified : <231107.1502>
+//  Last Modified : <231107.1801>
 //
 //  Description	
 //
@@ -265,29 +265,11 @@ void app_main()
     healthmonitor::HealthMonitor health_mon(stack.service());
     LOG(INFO, "[MAIN] HealthMonitor allocated");
     
-    openmrn_arduino::Esp32Ledc ledc0(PWMPINS0,LEDC_CHANNEL_0,LEDC_TIMER_12_BIT,
+    openmrn_arduino::Esp32Ledc ledc(PWMPINS,LEDC_CHANNEL_0,LEDC_TIMER_12_BIT,
                                     10000,LEDC_TIMER_0);
-    ledc0.hw_init();
-    Output::PinLookupInit(ledc0,0,0,2);
-    PWM *ch1 = ledc0.get_channel(0);
-    ch1->set_period(ch1->get_period_max());
-    openmrn_arduino::Esp32Ledc ledc1(PWMPINS1,LEDC_CHANNEL_2,LEDC_TIMER_12_BIT,
-                                     10000,LEDC_TIMER_1);
-    ledc1.hw_init();
-    Output::PinLookupInit(ledc1,2,0,2);
-    ch1 = ledc1.get_channel(0);
-    ch1->set_period(ch1->get_period_max());
-    openmrn_arduino::Esp32Ledc ledc2(PWMPINS2,LEDC_CHANNEL_4,LEDC_TIMER_12_BIT,
-                                     10000,LEDC_TIMER_2);
-    ledc2.hw_init();
-    Output::PinLookupInit(ledc2,4,0,2);
-    ch1 = ledc2.get_channel(0);
-    ch1->set_period(ch1->get_period_max());
-    openmrn_arduino::Esp32Ledc ledc3(PWMPINS3,LEDC_CHANNEL_6,LEDC_TIMER_12_BIT,
-                                     10000,LEDC_TIMER_3);
-    ledc3.hw_init();
-    Output::PinLookupInit(ledc3,6,0,2);
-    ch1 = ledc3.get_channel(0);
+    ledc.hw_init();
+    Output::PinLookupInit(ledc);
+    PWM *ch1 = ledc.get_channel(0);
     ch1->set_period(ch1->get_period_max());
     Sequence *sequences[SEQUENCECOUNT];
     for (int i=0; i < SEQUENCECOUNT; i++)

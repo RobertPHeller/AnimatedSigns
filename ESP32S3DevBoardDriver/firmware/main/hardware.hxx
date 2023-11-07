@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Sun Jan 15 16:13:22 2023
-//  Last Modified : <231107.1358>
+//  Last Modified : <231107.1450>
 //
 //  Description	
 //
@@ -49,9 +49,15 @@
 #include <utils/GpioInitializer.hxx>
 
 #if defined(CONFIG_IDF_TARGET_ESP32)
-#define PWMPINS {12,13,14,15,16,17,18,19}
+#define PWMPINS0 {12,13}
+#define PWMPINS1 {14,15}
+#define PWMPINS2 {16,17}
+#define PWMPINS3 {18,19}
 #elif defined(CONFIG_IDF_TARGET_ESP32S3)
-#define PWMPINS {11,12,13,14,15,16,17,18}
+#define PWMPINS0 {11,12}
+#define PWMPINS1 {13,14}
+#define PWMPINS2 {15,16}
+#define PWMPINS3 {17,18}
 #endif
 
 /// GPIO Pin connected to the TWAI (CAN) Transceiver RX pin.

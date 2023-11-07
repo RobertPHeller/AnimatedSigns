@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231107.1300>
+//  Last Modified : <231107.1446>
 //
 //  Description	
 //
@@ -149,12 +149,18 @@ public:
         LOG(INFO,"[Output::StartOutput] duty = %lu",duty);
         p->set_duty(duty);
     }
-    static void PinLookupInit(openmrn_arduino::Esp32Ledc &ledc)
+    static void PinLookupInit(openmrn_arduino::Esp32Ledc &ledc,
+                              int ostart = 0,int pstart = 0,
+                              int count = OUTPUTCOUNT)
     {
         pinlookup_[(uint8_t)Unused] = nullptr;
-        for (int i=0; i < OUTPUTCOUNT; i++)
+        for (int i=0;i < count; i++)
         {
-            pinlookup_[i+1] = ledc.get_channel(i);
+            int o=i+ostart;
+            if (o > OUTPUTCOUNT) break;
+            int p=i+pstart;
+            if (p > LEDC_CHANNEL_MAX) break;
+            pinlookup_[o+1] = ledc.get_channel(p);
         }
     }
 private:

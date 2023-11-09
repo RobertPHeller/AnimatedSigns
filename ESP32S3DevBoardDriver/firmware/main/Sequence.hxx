@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231109.1001>
+//  Last Modified : <231109.1005>
 //
 //  Description	
 //
@@ -171,7 +171,7 @@ public:
             pinlookup_[o+1] = ledc.get_channel(p);
         }
     }
-    void StopOutout()
+    void StopOutput()
     {
         if (running_)
         {

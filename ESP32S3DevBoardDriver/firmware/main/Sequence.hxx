@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231109.0955>
+//  Last Modified : <231109.0957>
 //
 //  Description	
 //
@@ -171,7 +171,7 @@ public:
             pinlookup_[o+1] = ledc.get_channel(p);
         }
     }
-    void StopFlicker()
+    void StopOutout()
     {
         if (running_)
         {
@@ -364,7 +364,7 @@ public:
         {
             LOG(INFO,"[Sequence::handle_event_report] event->event == stop_");
             stopped_ = true;
-            if (!running_) stopFlicker();
+            if (!running_) stopOutput();
         }
         else
         {
@@ -434,15 +434,15 @@ private:
     {
         stopped_ = true;
         running_ = false;
-        stopFlicker();
+        stopOutput();
         return exit();
     }
 
-    void stopFlicker()
+    void stopOutput()
     {
         for (int istep = 0; istep < STEPSCOUNT; istep++)
         {
-            steps_[istep]->StopFlicker();
+            steps_[istep]->StopOutput();
         }
     }
     void SendEventReport(openlcb::WriteHelper *helper,openlcb::EventId event)

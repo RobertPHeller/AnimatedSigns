@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231107.1805>
+//  Last Modified : <231108.2250>
 //
 //  Description	
 //
@@ -111,7 +111,7 @@ public:
         if (outputid_ == Unused) return;
         PWM * p = Pin();
         if (p == nullptr) return;
-        LOG(INFO,"[Output::StartOutput] p = %p, mode_ = %d",p,mode_);
+        //LOG(INFO,"[Output::StartOutput] p = %p, mode_ = %d",p,mode_);
         switch (mode_)
         {
         case On:
@@ -146,16 +146,16 @@ public:
             break;
         }
         uint32_t duty = (uint32_t)(BRIGHNESSHUNDRETHSPERCENT(currentbrightness_)*p->get_period());
-        LOG(INFO,"[Output::StartOutput] duty = %lu",duty);
+        //LOG(INFO,"[Output::StartOutput] duty = %lu",duty);
         p->set_duty(duty);
-        LOG(INFO,"[Output::StartOutput] p->get_duty() returns %lu", p->get_duty());
+        //LOG(INFO,"[Output::StartOutput] p->get_duty() returns %lu", p->get_duty());
     }
     void log_duty()
     {
         if (outputid_ == Unused) return;
         PWM * p = Pin();
         if (p == nullptr) return;
-        LOG(INFO,"[Output::log_duty] p->get_duty() returns %lu", p->get_duty());
+        //LOG(INFO,"[Output::log_duty] p->get_duty() returns %lu", p->get_duty());
     }
     static void PinLookupInit(openmrn_arduino::Esp32Ledc &ledc,
                               int ostart = 0,int pstart = 0,
@@ -340,10 +340,12 @@ public:
         AutoNotify n(done);
         if (event->event == stop_)
         {
+            LOG(INFO,"[Sequence::handle_event_report] event->event == stop_");
             stopped_ = true;
         }
         else
         {
+            LOG(INFO,"[Sequence::handle_event_report] event->event == start_");
             if (running_) return;
             if (!enabled_) return;
             stopped_ = false;
@@ -378,9 +380,10 @@ private:
     }
     Action next()
     {
+        LOG(INFO,"[Sequence::next] stopped_ is %d",stopped_);
         if (stopped_)
         {
-            call_immediately(STATE(finish));
+            return call_immediately(STATE(finish));
         }
         Step::NextMode_t next = steps_[istate_]->NextMode();
         switch (next)
@@ -490,7 +493,7 @@ private:
         }
         long long StartStep()
         {
-            LOG(INFO,"[Sequence::Step::StartStep]");
+            //LOG(INFO,"[Sequence::Step::StartStep]");
             for (int i=0; i < OUTPUTCOUNT; i++)
             {
                 outputs_[i]->StartOutput();
@@ -501,11 +504,11 @@ private:
         }
         void EndStep()
         {
-            LOG(INFO,"[Sequence::Step::EndStep]");
-            for (int i=0; i < OUTPUTCOUNT; i++)
-            {
-                outputs_[i]->log_duty();
-            }
+            //LOG(INFO,"[Sequence::Step::EndStep]");
+            //for (int i=0; i < OUTPUTCOUNT; i++)
+            //{
+            //    outputs_[i]->log_duty();
+            //}
             started_ = false;
             ended_ = true;
         }

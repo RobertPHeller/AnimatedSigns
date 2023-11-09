@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231109.0957>
+//  Last Modified : <231109.1001>
 //
 //  Description	
 //
@@ -543,11 +543,11 @@ private:
             started_ = false;
             ended_ = true;
         }
-        void StopFlicker()
+        void StopOutput()
         {
             for (int i=0; i < OUTPUTCOUNT; i++)
             {
-                outputs_[i]->StopFlicker();
+                outputs_[i]->StopOutput();
             }
         }
         openlcb::EventId StartEventId() const 

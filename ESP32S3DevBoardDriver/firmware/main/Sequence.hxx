@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231108.2250>
+//  Last Modified : <231109.0942>
 //
 //  Description	
 //
@@ -171,6 +171,13 @@ public:
             pinlookup_[o+1] = ledc.get_channel(p);
         }
     }
+    void StopFlicker()
+    {
+        if (running_)
+        {
+            currentstate_ = off;
+        }
+    }
 private:
     void startDelay(long long time) {
         if (running_) {
@@ -248,7 +255,13 @@ private:
             running_ = true;
             return ((rand()&0x01FF)+128)*1000000ULL; // random 128-640ms
             break;
+        case off:
+            currentbrightness_ = 0;
+            p->set_duty((uint32_t)(BRIGHNESSHUNDRETHSPERCENT(currentbrightness_)*p->get_period()));
+            return NONE; 
+            break;
         default:
+            return NONE;
             break;
         }
         return NONE;
@@ -342,6 +355,7 @@ public:
         {
             LOG(INFO,"[Sequence::handle_event_report] event->event == stop_");
             stopped_ = true;
+            if (!running_) stopFlicker();
         }
         else
         {
@@ -411,9 +425,17 @@ private:
     {
         stopped_ = true;
         running_ = false;
+        stopFlicker();
         return exit();
     }
 
+    void stopFlicker()
+    {
+        for (int istep = 0; istep < STEPSCOUNT; istep++)
+        {
+            steps_[istep]->StopFlicker();
+        }
+    }
     void SendEventReport(openlcb::WriteHelper *helper,openlcb::EventId event)
     {
         helper->WriteAsync(node_,
@@ -511,6 +533,13 @@ private:
             //}
             started_ = false;
             ended_ = true;
+        }
+        void StopFlicker()
+        {
+            for (int i=0; i < OUTPUTCOUNT; i++)
+            {
+                outputs_[i]->StopFlicker();
+            }
         }
         openlcb::EventId StartEventId() const 
         {

@@ -8,7 +8,7 @@
 //  Author        : $Author$
 //  Created By    : Robert Heller
 //  Created       : Mon Feb 6 09:47:06 2023
-//  Last Modified : <231109.0942>
+//  Last Modified : <231109.0955>
 //
 //  Description	
 //
@@ -176,6 +176,15 @@ public:
         if (running_)
         {
             currentstate_ = off;
+        }
+        else
+        {
+            if (outputid_ == Unused) return;
+            PWM * p = Pin();
+            if (p == nullptr) return;
+            currentstate_ = off;
+            currentbrightness_ = 0;
+            p->set_duty((uint32_t)(BRIGHNESSHUNDRETHSPERCENT(currentbrightness_)*p->get_period()));
         }
     }
 private:

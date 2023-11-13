@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Nov 12 12:33:36 2023
-#  Last Modified : <231112.1408>
+#  Last Modified : <231112.1412>
 #
 #  Description	
 #
@@ -93,7 +93,8 @@ class SixFootHood(object):
         obj.Shape=self.hood
         obj.Label=self.name
         obj.ViewObject.ShapeColor=tuple([0.0,0.0,0.0])
-        
+    def ExportHoodSTL(self,filename="hood.stl"):
+        self.hood.exportStl(filename)
 
 
 if __name__ == '__main__':
@@ -102,4 +103,4 @@ if __name__ == '__main__':
     hood = SixFootHood("Hood",Base.Vector(0,0,0))
     hood.show(doc)
     Gui.SendMsgToActiveView("ViewFit")
-    
+    hood.ExportHoodSTL()

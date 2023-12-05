@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "sign")(type "KiCad")(uri "${KIPRJMOD}/sign.pretty")(options "")(descr ""))
+  (lib (name "Pads")(type "KiCad")(uri "${KIPRJMOD}/Pads.pretty")(options "")(descr ""))
+)
